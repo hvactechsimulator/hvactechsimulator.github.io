@@ -346,7 +346,7 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
   linear-gradient(90deg,rgba(61,143,232,.05) 1px,transparent 1px) 0 0/28px 28px,var(--bg);
   padding:max(24px,env(safe-area-inset-top,0px)) 16px max(24px,env(safe-area-inset-bottom,0px))}
 .menu-in{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:28px;align-items:start}
-@media (max-width:900px){.menu-in{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:900px){.menu-in{grid-template-columns:minmax(0,1fr)}.m-hero{order:2}.m-legal{order:3}}
 .m-hero{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;position:relative;overflow:hidden}
 .m-hero h1{margin:0;font-family:var(--display);font-weight:800;font-size:clamp(38px,4.6vw,54px);overflow-wrap:anywhere;line-height:.92;text-transform:uppercase;letter-spacing:.01em}
 .m-hero h1 span{color:var(--accent)}
@@ -374,6 +374,28 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
 .opt span{display:block;color:var(--muted);font-size:12.5px;margin-top:3px}
 .opt:hover{border-color:#4a5663}
 .opt[aria-checked="true"]{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--panel2))}
+.m-daily{border-color:color-mix(in srgb,var(--accent) 55%,var(--line));background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 10%,var(--panel)),var(--panel) 60%)}
+.md-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.md-tag{font-family:var(--display);font-weight:800;font-size:20px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.md-head b{font:600 18px var(--mono)}
+.md-date{color:var(--muted);font-size:13px}
+.md-rules{margin:8px 0 12px;color:#c9d1d9;font-size:13.5px}
+.md-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:14px}
+.md-stats div{background:#0f1418;border:1px solid var(--line);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column}
+.md-stats b{font:600 20px var(--mono)}
+.md-stats span{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.md-done{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.md-score b{font:700 34px var(--mono);color:var(--accent)}
+.md-score span{color:var(--muted);margin-left:6px}
+.md-next{color:var(--muted);font-size:13px}
+.md-next b{color:var(--ink);font-family:var(--mono)}
+.md-miss{color:var(--warn);font-weight:600}
+.dcats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin:4px 0 14px}
+.dcats div{border-radius:8px;padding:8px 6px;text-align:center;background:#0f1418;border:1px solid var(--line)}
+.dcats b{display:block;font:600 16px var(--mono)}
+.dcats span{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.dcats .full{border-color:var(--ok)}.dcats .part{border-color:var(--accent)}.dcats .zero{border-color:var(--high)}
+@media (max-width:520px){.md-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.dcats{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .m-detail{margin:10px 0 0;padding:10px 12px;border-radius:8px;background:#0f1418;border:1px dashed var(--line);color:#c9d1d9;font-size:13px;min-height:44px}
 .m-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .m-row select{flex:1 1 260px;min-width:0;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:10px;color:var(--ink)}
@@ -634,6 +656,7 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
       <div class="m-career" id="mCareer"></div>
     </div>
     <div class="m-form">
+      <div class="m-sec m-daily" id="mDaily"></div>
       <div class="m-sec">
         <h2><i>1</i>Technician</h2>
         <div class="opts two" role="radiogroup" aria-label="Technician mode" id="techOpts"></div>
@@ -1299,6 +1322,7 @@ function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
 const blankCareer=()=>({tutorial:{calls:0,total:0,first:0},easy:{calls:0,total:0,first:0},hard:{calls:0,total:0,first:0}});
 let career=load("scs-career2",blankCareer());
 let prefs=Object.assign({tech:"app",diff:"tutorial",season:"summer",scen:"random",sound:true,tips:true,auto:true},load("scs-prefs",{}));
+const appMode=()=>prefs.tech==="app"&&!(s&&s.daily);
 const seasonOk=sc=>prefs.season==="all"||sc.season===prefs.season;
 
 /* ================= equipment systems & locations ================= */
@@ -1588,6 +1612,8 @@ function bCycle(){
 const needMins=()=>SYS[s.sysId].need;
 function tick(){
   if(s.sysId==="furnace")tickF();else if(s.sysId==="boiler")tickB();else tickAC();
+  /* proof: the moment a fault clears, by a repair or by hand, note how much of it had been proven */
+  if(s.initFaults){const cur=activeFaults();s.proof=s.proof||{};(s.pf||s.initFaults).forEach(f=>{if(!cur.includes(f)&&s.proof[f]==null)s.proof[f]=proofFrac(f);});s.pf=cur;}
 }
 function tickAC(){
   E=sysAC();
@@ -2754,7 +2780,7 @@ function showBubble(id,html,opts){
 function hideBubble(){const b=$("#bubble");if(b)b.remove();$("#dock").hidden=true;$("#dock").innerHTML="";}
 function readingHtml(r){
   let h=(r.lines||[]).map(l=>'<p class="fact">'+esc(l)+'</p>').join("")+(r.calc||[]).map(l=>'<p class="calc">'+esc(l)+'</p>').join("");
-  if(r.tip&&(prefs.tech==="app"||r.forceTip))h+='<p class="btip">'+esc(r.tip)+'</p>';
+  if(r.tip&&(appMode()||r.forceTip))h+='<p class="btip">'+esc(r.tip)+'</p>';
   return h;
 }
 function floater(pos,txt){const f=document.createElement("div");f.className="floater";f.textContent=txt;placeAt(f,pos);$("#stage").appendChild(f);setTimeout(()=>f.remove(),1200);}
@@ -3644,10 +3670,10 @@ function measure(a,b,pos){
   const gotC=wClue(a,b,mode==="ohm"?"R":mode);
   if(!r.forceTip&&r.meter&&r.meter.v!=="VOLT"&&gotC.length){const ct=clueTip(gotC[0],mode==="ohm"?"R":mode);if(ct)r.tip=ct+(r.tipX||"");}
   s.hits["w:"+[a,b].sort().join("|")+":"+mode]=1;s.hits.wprobe=(s.hits.wprobe||0)+1;
-  addLog({title:r.title||title,lines:r.lines,calc:r.calc,hint:r.tip&&(prefs.tech==="app"||r.forceTip)?r.tip:null,bad:r.bad});
+  addLog({title:r.title||title,lines:r.lines,calc:r.calc,hint:r.tip&&(appMode()||r.forceTip)?r.tip:null,bad:r.bad});
   if(r.meter)lcdShow("meter",lcdMem.meter=r.meter,true);
   wInfo('<p class="wi-h">'+esc(r.title||title)+'</p>'+r.lines.slice(1).map(l=>'<p class="wi-mono">'+esc(l)+'</p>').join("")+
-    (r.tip&&(prefs.tech==="app"||r.forceTip)?'<p class="wi-tip">'+esc(r.tip)+'</p>':'')+
+    (r.tip&&(appMode()||r.forceTip)?'<p class="wi-tip">'+esc(r.tip)+'</p>':'')+
     '<div class="wi-acts"><button class="linkbtn" data-wact="clear">Lift the leads</button><button class="linkbtn" data-wact="diagram">Wiring diagram</button></div>');
   if(r.warn)$("#winfo").classList.add("warn");else $("#winfo").classList.remove("warn");
   renderAll();
@@ -3670,10 +3696,10 @@ function clampWire(id,pos){
     fBK:["FLA",()=>s.f.bfla],fRD:["FLA",()=>s.f.bfla],fWH:["FLA",()=>s.f.bfla],fEL:["FLA",()=>s.f.bfla],fEN:["FLA",()=>s.f.bfla],bC1:["nameplate",()=>.75],bC2:["nameplate",()=>.75]}[id];
   if(RATE&&!compLead){const mx=Math.max.apply(null,vals.map(x=>Math.abs(x.v))),nm=RATE[1]();lines.push("Nameplate "+RATE[0]+" "+nm+" A"+(mx>.05?" · reading is "+i0(100*mx/nm)+"% of it":""));}
   const tip="A clamp reads the current in one conductor. Clamping a cable with both the hot and the neutral inside reads near zero, because their currents cancel.";
-  addLog({title:"Clamp meter: "+col[2]+" wire",lines,hint:prefs.tech==="app"?tip:null});
+  addLog({title:"Clamp meter: "+col[2]+" wire",lines,hint:appMode()?tip:null});
   lcdShow("clamp",lcdMem.clamp=meter,true);
   wsel={id,ids:[id],net:false};wHighlight();drawClamp(id);
-  wInfo('<p class="wi-h"><span class="wi-sw" style="background:'+col[0]+'"></span>Clamp on the '+esc(col[2].toLowerCase())+' wire</p>'+lines.slice(1).map(l=>'<p class="wi-mono">'+esc(l)+'</p>').join("")+(prefs.tech==="app"?'<p class="wi-tip">'+esc(tip)+'</p>':'')+
+  wInfo('<p class="wi-h"><span class="wi-sw" style="background:'+col[0]+'"></span>Clamp on the '+esc(col[2].toLowerCase())+' wire</p>'+lines.slice(1).map(l=>'<p class="wi-mono">'+esc(l)+'</p>').join("")+(appMode()?'<p class="wi-tip">'+esc(tip)+'</p>':'')+
     '<div class="wi-acts"><button class="linkbtn" data-wact="clear">Remove the clamp</button></div>');
   renderAll();
 }
@@ -3731,9 +3757,9 @@ function afterJump(msg){
   const blew=fz&&!s.p.fuseOk;if(blew){zap();msg+=" Pop: that's a dead short from R to C. The 3 A board fuse just blew.";}
   const call=jj("BRD.R","BRD.Y")||jj("BRD.R","BRD.W")||jj("ZS1.R","ZS1.W")||jj("ZS2.R","ZS2.W")||jj("CTL.TT1","CTL.TT2");
   if(call)s.done.jumper=true;
-  addLog({title:"Jumper",lines:[msg+" +1 min"],hint:prefs.tech==="app"&&call?TIPS.jumper:null});
+  addLog({title:"Jumper",lines:[msg+" +1 min"],hint:appMode()&&call?TIPS.jumper:null});
   drawJumpers();
-  wInfo('<p class="wi-h">Jumper</p><p class="wi-mono">'+esc(msg)+'</p>'+(prefs.tech==="app"&&call?'<p class="wi-tip">'+esc(TIPS.jumper)+'</p>':'')+'<p>Tap a jumpered terminal to take the jumper off.</p><div class="wi-acts"><button class="linkbtn" data-wact="clear">OK</button></div>');
+  wInfo('<p class="wi-h">Jumper</p><p class="wi-mono">'+esc(msg)+'</p>'+(appMode()&&call?'<p class="wi-tip">'+esc(TIPS.jumper)+'</p>':'')+'<p>Tap a jumpered terminal to take the jumper off.</p><div class="wi-acts"><button class="linkbtn" data-wact="clear">OK</button></div>');
   $("#winfo").classList.toggle("warn",blew);coachCheck();renderAll();
 }
 function drawJumpers(){
@@ -3981,7 +4007,7 @@ function usePoint(id,pos){
   if(p.clue)s.done[typeof p.clue==="function"?p.clue(meterMode):p.clue]=true;
   (p.clues||[]).forEach(c=>{s.done[c]=true;});
   tick();
-  addLog({title:r.title||plabel(id),lines:r.lines,calc:r.calc,hint:r.tip&&(prefs.tech==="app"||r.forceTip)?r.tip:null,bad:r.bad});
+  addLog({title:r.title||plabel(id),lines:r.lines,calc:r.calc,hint:r.tip&&(appMode()||r.forceTip)?r.tip:null,bad:r.bad});
   if(r.meter)lcdShow(p.tool,lcdMem[p.tool]=r.meter,true);
   if(!p.free||/Mode$/.test(id))showBubble(id,readingHtml(r.short?Object.assign({},r,{lines:r.short}):r),{warn:r.warn,title:r.title,cursor:pos});
   renderAll();
@@ -4004,7 +4030,7 @@ function talkHtml(){
   s.asked.forEach(q=>{h+='<p class="fact">“'+esc(qa[q])+'”</p>';});
   if(!s.asked.length)h+='<p class="fact">“Thanks for coming out. What do you need to know?”</p>';
   h+='<div class="qs">'+Q.map(([k,l])=>'<button type="button" data-q="'+k+'" '+(s.asked.includes(k)?"disabled":"")+'>'+esc(l)+'</button>').join("")+'</div>';
-  if(prefs.tech==="app"&&s.asked.length)h+='<p class="btip">'+esc(TIPS.talk)+'</p>';
+  if(appMode()&&s.asked.length)h+='<p class="btip">'+esc(TIPS.talk)+'</p>';
   return h;
 }
 const custId=()=>s.sysId==="boiler"?"customerB":"customer";
@@ -4034,6 +4060,7 @@ function openRepair(){
 }
 /* time on site minus flat-rate labor for repairs that corrected a fault; wrong parts still count */
 const diagMin=()=>s.clock-s.labor;
+const proofFrac=f=>{const c=FX[f].clues;return c.length?c.filter(([a])=>s.done[a]).length/c.length:1;};
 function doRepair(){
   if(!chosen)return;
   const id=chosen,r=REPAIRS[id],p=s.p,u=s.u,before=activeFaults().join();
@@ -4090,6 +4117,7 @@ function doRepair(){
   const changed=activeFaults().join()!==before||(id==="topoff"||id==="recover");
   /* book labor for a repair that corrected something is flat-rate; it doesn't count against par */
   const corrected=before.split(",").filter(Boolean).some(f=>!activeFaults().includes(f));
+  before.split(",").filter(Boolean).filter(f=>!activeFaults().includes(f)).forEach(f=>{s.proof=s.proof||{};if(s.proof[f]==null)s.proof[f]=proofFrac(f);});
   if(corrected)s.labor+=r.min;
   s.repairs[s.repairs.length]={id,t:s.clock,changed,corrected};
   s.lastRepairAt=s.clock+r.min;resetVerify();
@@ -4172,7 +4200,8 @@ function endCall(){
   const total=clamp(faultPts+verifyPts+timePts+safePts-wrongPen-inducedPen,0,100);
   const allFixed=now.length===0,verified=c.running&&vdone===vreq.length&&s.lastRepairAt!=null;
   const first=allFixed&&!wrong.length&&verified;
-  const cr=career[sc.diff];cr.calls++;cr.total+=total;if(first)cr.first++;save("scs-career2",career);
+  const cr=career[sc.diff];if(cr){cr.calls++;cr.total+=total;if(first)cr.first++;save("scs-career2",career);}
+  if(s.daily)return dailyDebrief({init,now,induced,c,vreq,vdone,diag,wrong,allFixed,verified});
   if(tut){const d=load("scs-tutdone",[]);if(allFixed&&!d.includes(sc.id)){d.push(sc.id);save("scs-tutdone",d);}}
   const vcls=allFixed?(verified?"v-good":"v-mid"):"v-bad";
   const vtxt=allFixed?(verified?"System verified":"Fixed, not verified"):"Callback";
@@ -4200,6 +4229,52 @@ function endCall(){
   $("#deb").innerHTML=h;$("#debScrim").hidden=false;
   renderAll();
   $("#debNext").onclick=()=>{$("#debScrim").hidden=true;prefs.scen="random";startCall(chooseScenario());};
+  $("#debMenu").onclick=()=>{$("#debScrim").hidden=true;openMenu();};
+  $("#debReview").onclick=()=>{$("#debScrim").hidden=true;};
+}
+
+function dailyDebrief(o){
+  const sc=s.sc,{init,now,induced,c,vreq,vdone,diag,wrong,allFixed,verified}=o;
+  const fixedFrac=init.length?init.filter(f=>!now.includes(f)).length/init.length:1;
+  const proof=init.length?init.reduce((a,f)=>a+(now.includes(f)?0:(s.proof&&s.proof[f]!=null?s.proof[f]:0)),0)/init.length:1;
+  const ver=c.running?vdone/Math.max(1,vreq.length):0;
+  /* time and safety only count for the part of the job you actually fixed: walking away scores nothing */
+  const over=Math.max(0,diag-sc.par),timeF=Math.max(0,1-over/20)*fixedFrac;
+  const safeF=(s.safety?0:1)*fixedFrac;
+  const cats=[fixedFrac,proof,ver,timeF,safeF],W=[35,15,15,20,15];
+  const pts=cats.map((v,i)=>Math.round(v*W[i]));
+  const pen=15*wrong.length+15*induced.length;
+  const score=clamp(pts.reduce((a,b)=>a+b,0)-pen,0,100);
+  const st=dailyStore();
+  st.res[s.daily.no]={no:s.daily.no,done:true,score,cats,diag,par:sc.par,wrong:wrong.length,sys:s.sysId,fixed:allFixed,verified};
+  save(DKEY,st);
+  const nm=["Fix","Proof","Verify","Time","Safety"],cl=v=>v>=1?"full":v>0?"part":"zero";
+  const vcls=allFixed?(verified?"v-good":"v-mid"):"v-bad",vtxt=allFixed?(verified?"System verified":"Fixed, not verified"):"Callback";
+  const rating=score===100?"Perfect call.":score>=90?"Elite work.":score>=75?"Strong call.":score>=55?"Got there.":"Rough day.";
+  let h='<span class="verdict '+vcls+'">'+vtxt+'</span><h2 id="debTitle">Daily challenge #'+s.daily.no+' · '+esc(s.cust)+'</h2>'+
+    '<div class="score"><b>'+score+'</b><span>/ 100 · '+rating+'</span></div>'+
+    '<div class="dcats">'+cats.map((v,i)=>'<div class="'+cl(v)+'"><b>'+pts[i]+'/'+W[i]+'</b><span>'+nm[i]+'</span></div>').join("")+'</div>'+
+    '<table class="breakdown">'+
+    '<tr><td>Faults corrected: '+init.filter(f=>!now.includes(f)).length+' of '+init.length+'</td><td>+'+pts[0]+'</td></tr>'+
+    '<tr><td>Proof: the readings that confirm each fault, taken before its repair</td><td>+'+pts[1]+'</td></tr>'+
+    '<tr><td>Verified operation'+(c.running?"":" (system left not running)")+': '+vdone+' of '+vreq.length+'</td><td>+'+pts[2]+'</td></tr>'+
+    '<tr><td>Diagnostic time: '+diag+' min · par '+sc.par+' (−1 per minute over)</td><td>+'+pts[3]+'</td></tr>'+
+    '<tr><td>Safety'+(s.safety?": "+esc(s.safetyWhy||"tested a live capacitor"):"")+'</td><td>+'+pts[4]+'</td></tr>'+
+    (wrong.length?'<tr><td>Repairs that changed nothing: '+wrong.map(r=>esc(REPAIRS[r.id].n)).join(", ")+'</td><td>−'+15*wrong.length+'</td></tr>':'')+
+    (induced.length?'<tr><td>Problems created by a repair</td><td>−'+15*induced.length+'</td></tr>':'')+'</table>';
+  h+='<h4>What was wrong</h4>';
+  init.concat(induced).forEach(f=>{
+    const fx=FX[f],still=now.includes(f),isInd=induced.includes(f);
+    const chip=isInd?'<span class="chip c-bad">Created by a repair</span>':still?'<span class="chip c-bad">Still present</span>':'<span class="chip c-ok">Corrected</span>';
+    h+='<div class="fcard"><h3>'+esc(fx.name)+chip+'</h3>';
+    if(!isInd)h+='<ul class="clues">'+fx.clues.map(([a,t])=>'<li><span class="chip '+(s.done[a]?"c-ok":"c-n")+'">'+(s.done[a]?"Found":"Missed")+'</span><span>'+esc(t)+'</span></li>').join("")+'</ul>';
+    h+='<p class="explain">'+esc(fx.explain)+'</p></div>';});
+  if(sc.herring)h+='<h4>Red herring</h4><div class="fcard"><h3>'+(s.done[sc.herring.clue]?'<span class="chip c-ok">Ruled out</span>':'<span class="chip c-n">Not checked</span>')+'</h3><p class="explain">'+esc(sc.herring.t)+'</p></div>';
+  h+='<p class="md-next" style="margin:12px 0 0">Next challenge in <b>'+untilTomorrow()+'</b>. Current streak: <b>'+dailyStreak(st)+'</b>'+(allFixed?'':' (a callback breaks your streak)')+'</p>';
+  h+='<div class="mact"><button class="ghost" id="debReview" type="button">Review the site</button><button class="ghost" id="debMenu" type="button">Main menu</button><button class="big" id="debShare" type="button">Share result</button></div>';
+  $("#deb").innerHTML=h;$("#debScrim").hidden=false;
+  renderAll();
+  $("#debShare").onclick=()=>shareDaily(s.daily.no,$("#debShare"));
   $("#debMenu").onclick=()=>{$("#debScrim").hidden=true;openMenu();};
   $("#debReview").onclick=()=>{$("#debScrim").hidden=true;};
 }
@@ -4273,7 +4348,7 @@ function coachRender(){
 const fmtClock=m=>Math.floor(m/60)+":"+String(Math.round(m%60)).padStart(2,"0");
 function renderTop(){
   $("#sCall").textContent=callNo;$("#sClock").textContent=fmtClock(s.clock);
-  $("#modeBadge").textContent=(prefs.tech==="app"?"Apprentice":"Master")+" · "+s.sc.diff[0].toUpperCase()+s.sc.diff.slice(1);
+  $("#modeBadge").textContent=s.daily?"Daily #"+s.daily.no+" · Master":(prefs.tech==="app"?"Apprentice":"Master")+" · "+s.sc.diff[0].toUpperCase()+s.sc.diff.slice(1);
   $("#sndBtn").setAttribute("aria-pressed",prefs.sound);$("#sndBtn").textContent=prefs.sound?"Sound on":"Sound off";
   $("#parNote").innerHTML=s.sc.diff==="tutorial"?"Tutorial: no clock pressure":"Diagnostic time <b>"+diagMin()+"</b> / par <b>"+s.sc.par+"</b> min";
   const e=E,v=vis();
@@ -4417,7 +4492,7 @@ function refTab(t){
   $("#refBody").innerHTML=h;
 }
 function openRef(){
-  const app=prefs.tech==="app";
+  const app=appMode();
   if(s&&s.sysId!=="ac"){
     const fur=s.sysId==="furnace",li=a=>'<ul class="targets">'+a.map(([x,y])=>'<li><span>'+x+'</span><b>'+y+'</b></li>').join("")+'</ul>';
     $("#refSub").textContent=app?(fur?"Condensing gas furnace, natural gas.":"Two-zone hydronic boiler with baseboard."):"Master Tech: facts only. Nameplate data and calculated values are on screen.";
@@ -4459,6 +4534,7 @@ function renderMenu(){
   menuDetail();
   $("#mCareer").innerHTML=["tutorial","easy","hard"].map(k=>{const c=career[k];return'<div><b>'+(c.calls?Math.round(c.total/c.calls):"–")+'</b><span>'+k+' avg · '+c.calls+' calls</span></div>';}).join("");
   $("#resumeBtn").hidden=!(s&&!s.over);
+  renderDaily();
 }
 function menuDetail(hover){
   const t=TECH.find(x=>x.id===(hover&&hover.tech||prefs.tech)),d=DIFF.find(x=>x.id===(hover&&hover.diff||prefs.diff));
@@ -4471,6 +4547,77 @@ const SEASONS=[
   {id:"all",n:"All seasons",d:"Any supported equipment, fully random.",long:"Calls come from the whole library: central AC, gas furnaces, and gas boilers."}
 ];
 function openMenu(){hideBubble();renderMenu();$("#menu").hidden=false;updateAmbient();window.scrollTo({top:0});}
+/* ================= daily challenge =================
+   Same call for everyone on a given date: hard pool, often a second hidden fault, Master rules, one attempt, strict scoring. */
+const DAILY0=Date.UTC(2026,9,9);
+function dailyInfo(d){d=d||new Date();const y=d.getFullYear(),m=d.getMonth(),dd=d.getDate();
+  const no=Math.round((Date.UTC(y,m,dd)-DAILY0)/864e5)+1;
+  return{no,date:y+"-"+String(m+1).padStart(2,"0")+"-"+String(dd).padStart(2,"0"),label:d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"})};}
+function hash32(str){let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function withSeed(seed,fn){const R0=Math.random;Math.random=mulberry(seed);try{return fn();}finally{Math.random=R0;}}
+const faultsOf=t=>Object.keys(FX).filter(k=>(FX[k].sys||"ac")===t.sysId&&FX[k].active(t.p,t.u));
+function buildDaily(no){
+  const hard=SCN.filter(x=>x.diff==="hard"),N=hard.length,cyc=Math.floor((no-1)/N);
+  const order=withSeed(hash32("hvacsim-cycle-"+cyc),()=>hard.map(x=>[Math.random(),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]));
+  const base=order[((no-1)%N+N)%N];
+  const sc=Object.assign({},base,{id:"daily-"+no,diff:"daily",title:"Daily challenge #"+no});
+  /* most cooling and furnace dailies hide a second, unrelated fault */
+  withSeed(hash32("hvacsim-extra-"+no),()=>{
+    if(base.sys==="boiler"||Math.random()<.35)return;
+    const probe=x=>withSeed(7,()=>faultsOf(newCall(x)));
+    const bf=probe(base),cands=SCN.filter(x=>x.diff==="easy"&&x.sys===base.sys).map(x=>[Math.random(),x]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+    for(const ex of cands){
+      const ef=probe(ex);if(ef.some(f=>bf.includes(f)))continue;
+      const combo=Object.assign({},sc,{setup:(p,u,t)=>{base.setup(p,u,t);ex.setup(p,u,t);}});
+      const cf=probe(combo);if(!bf.every(f=>cf.includes(f))||!ef.every(f=>cf.includes(f)))continue;
+      sc.setup=combo.setup;sc.verify=[...new Set([...(base.verify||[]),...(ex.verify||[])])];sc.extra=ex.id;sc.par=base.par+Math.round(ex.par*.6);break;}
+  });
+  sc.par=Math.round(sc.par*.8);
+  return sc;
+}
+const DKEY="scs-daily";
+const dailyStore=()=>Object.assign({res:{},started:{}},load(DKEY,{}));
+function dailyStreak(st){const today=dailyInfo().no;let n=st.res[today]?today:today-1,k=0;while(st.res[n]&&st.res[n].done&&st.res[n].fixed){k++;n--;}return k;}
+function dailyMaxStreak(st){const ks=Object.keys(st.res).filter(k=>st.res[k].fixed).map(Number).sort((a,b)=>a-b);let best=0,run=0,prev=null;ks.forEach(k=>{run=prev===k-1?run+1:1;best=Math.max(best,run);prev=k;});return best;}
+function startDaily(){
+  const d=dailyInfo(),st=dailyStore();if(st.started[d.no])return;
+  st.started[d.no]=1;save(DKEY,st);
+  const sc=buildDaily(d.no);
+  withSeed(hash32("hvacsim-call-"+d.no),()=>startCall(sc));
+  woNo=30000+d.no;s.daily={no:d.no,date:d.date};renderAll();
+}
+function untilTomorrow(){const n=new Date(),t=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1);const m=Math.max(0,Math.round((t-n)/6e4));return Math.floor(m/60)+"h "+(m%60)+"m";}
+function dailyShare(r){
+  const sq=v=>v>=1?"🟩":v>=.5?"🟨":v>0?"🟧":"🟥";
+  return"HVAC Tech Simulator · Daily #"+r.no+" "+(r.sys==="ac"?"❄️":"🔥")+"\n"+
+    "Score "+r.score+"/100\n"+r.cats.map(sq).join("")+"  fix · proof · verify · time · safety\n"+
+    "⏱ "+r.diag+" min · par "+r.par+(r.wrong?" · 🔧 "+r.wrong+" wasted repair"+(r.wrong>1?"s":""):"")+"\n"+
+    "hvactechsimulator.com";
+}
+function shareDaily(no,btn){
+  const st=dailyStore(),r=st.res[no];if(!r)return;const txt=dailyShare(r);
+  const done=()=>{if(btn){const o=btn.textContent;btn.textContent="Copied!";setTimeout(()=>btn.textContent=o,1600);}};
+  if(navigator.share&&matchMedia("(pointer:coarse)").matches){navigator.share({text:txt}).catch(()=>{});return;}
+  (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(done).catch(()=>{const ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");done();}catch(e){}ta.remove();});
+}
+function renderDaily(){
+  const el=$("#mDaily");if(!el)return;
+  const d=dailyInfo(),st=dailyStore(),r=st.res[d.no],started=st.started[d.no];
+  const vals=Object.values(st.res).filter(x=>x.done),avg=vals.length?Math.round(vals.reduce((a,x)=>a+x.score,0)/vals.length):"–",best=vals.length?Math.max(...vals.map(x=>x.score)):"–";
+  let h='<div class="md-head"><span class="md-tag">Daily challenge</span><b>#'+d.no+'</b><span class="md-date">'+esc(d.label)+'</span></div>'+
+    '<p class="md-rules">The toughest call of the day, the same for every tech. Master Tech rules: no tips, no coaching. Often more than one fault. Strict scoring, and you only get one try.</p>'+
+    '<div class="md-stats"><div><b>'+dailyStreak(st)+'</b><span>Streak</span></div><div><b>'+dailyMaxStreak(st)+'</b><span>Best streak</span></div><div><b>'+best+'</b><span>Best score</span></div><div><b>'+avg+'</b><span>Average</span></div></div>';
+  if(r&&r.done)h+='<div class="md-done"><div class="md-score"><b>'+r.score+'</b><span>/ 100 today</span></div><button class="big" id="dailyShare" type="button">Share result</button><span class="md-next">Next challenge in <b id="dNext">'+untilTomorrow()+'</b></span></div>';
+  else if(started&&s&&s.daily&&s.daily.no===d.no&&!s.over)h+='<div class="md-done"><button class="big" id="dailyResume" type="button">Resume today\'s challenge</button><span class="md-next">Closing this page ends your attempt.</span></div>';
+  else if(started)h+='<div class="md-done"><span class="md-miss">Attempt used: not finished.</span><span class="md-next">Next challenge in <b id="dNext">'+untilTomorrow()+'</b></span></div>';
+  else h+='<div class="md-done"><button class="big" id="dailyBtn" type="button">Start today\'s challenge</button><span class="md-next">One attempt. Leaving the call before closing it out uses it up.</span></div>';
+  el.innerHTML=h;
+  const b=$("#dailyBtn");if(b)b.onclick=()=>{Snd.init();startDaily();};
+  const rs=$("#dailyResume");if(rs)rs.onclick=()=>{$("#menu").hidden=true;updateAmbient();};
+  const sh=$("#dailyShare");if(sh)sh.onclick=()=>shareDaily(d.no,sh);
+}
+setInterval(()=>{const n=$("#dNext");if(n&&!$("#menu").hidden)n.textContent=untilTomorrow();},30000);
 function startCall(sc){
   callNo=career.tutorial.calls+career.easy.calls+career.hard.calls+1;
   woNo++;s=newCall(sc);s.lifted={};s.cut={};s.everLifted=0;s.jumps=[];s.zOff=[false,false];wjFirst=null;play=null;tripping=false;lastMarks="";
