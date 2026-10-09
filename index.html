@@ -414,6 +414,8 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
 .lb-form input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .lb-err{color:var(--high);font-size:13px;margin:8px 0 0}
 .lb-ok{color:var(--ok);font-weight:600}
+#nameForm{margin-bottom:4px}
+.md-next .linkbtn{padding:2px 8px;font-size:12px}
 .m-detail{margin:10px 0 0;padding:10px 12px;border-radius:8px;background:#0f1418;border:1px dashed var(--line);color:#c9d1d9;font-size:13px;min-height:44px}
 .m-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .m-row select{flex:1 1 260px;min-width:0;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:10px;color:var(--ink)}
@@ -600,6 +602,19 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
 </div>
 
 <!-- reference -->
+<div class="scrim" id="nameScrim" hidden>
+  <div class="modal sm" role="dialog" aria-modal="true" aria-labelledby="nameTitle">
+    <h2 id="nameTitle">Daily challenge</h2>
+    <p class="sub" id="nameSub">To play the Daily Challenge, enter your name. It's what other techs will see on the leaderboard, and your score posts automatically when you close out the call.</p>
+    <form class="lb-form" id="nameForm">
+      <input id="nmName" maxlength="24" placeholder="Name (e.g. Mike R.)" autocomplete="nickname" required>
+      <input id="nmShop" maxlength="40" placeholder="Shop or city (optional)">
+    </form>
+    <p class="lb-err" id="nmErr" hidden></p>
+    <p class="lb-me">2–24 letters or numbers. Keep it clean; names that aren't get removed.</p>
+    <div class="mact"><button class="ghost" id="nmCancel" type="button">Cancel</button><button class="ghost" id="nmOffline" type="button" hidden>Play without posting</button><button class="big" id="nmGo" type="submit" form="nameForm">Save name and start</button></div>
+  </div>
+</div>
 <div class="scrim" id="lbScrim" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="lbTitle">
     <h2 id="lbTitle">Leaderboard</h2>
@@ -4665,11 +4680,30 @@ function renderPost(no){
   if(pl){el.innerHTML='<h4>Leaderboard</h4><p>Posting your score as <b>'+esc(pl.name)+'</b>…</p>';
     lbSubmit(no).then(()=>renderPost(no)).catch(e=>{el.innerHTML='<h4>Leaderboard</h4><p class="lb-err">'+esc(e.message)+'</p><div class="lb-form"><button class="ghost" type="button" id="lbRetry">Try again</button></div>';$("#lbRetry").onclick=()=>renderPost(no);});
     return;}
-  el.innerHTML='<h4>Post your score to the leaderboard</h4><p>Pick the name other techs will see. Add your shop or city if you like. Your name is saved on this device, and future dailies post automatically.</p>'+
+  el.innerHTML='<h4>Post your score to the leaderboard</h4><p>You played without a leaderboard name. Add one to post this score.</p>'+
     '<form class="lb-form" id="lbForm"><input id="lbName" maxlength="24" placeholder="Name (e.g. Mike R.)" autocomplete="nickname" required><input id="lbShop" maxlength="40" placeholder="Shop or city (optional)"><button class="big" type="submit">Post score</button></form><p class="lb-err" id="lbErr" hidden></p>';
   $("#lbForm").onsubmit=e=>{e.preventDefault();const b=e.target.querySelector("button");b.disabled=true;$("#lbErr").hidden=true;
     lbRegister($("#lbName").value,$("#lbShop").value).then(()=>lbSubmit(no)).then(()=>renderPost(no)).catch(err=>{b.disabled=false;$("#lbErr").textContent=err.message;$("#lbErr").hidden=false;});};
 }
+/* the daily needs a leaderboard name first */
+let nameThen=null;
+function askName(then,change){
+  nameThen=then;const pl=lbPlayer();
+  $("#nameTitle").textContent=change?"Change your name":"Daily challenge";
+  $("#nameSub").textContent=change?"Pick a new leaderboard name. Scores you already posted stay under your old name.":"To play the Daily Challenge, enter your name. It's what other techs will see on the leaderboard, and your score posts automatically when you close out the call.";
+  $("#nmGo").textContent=change?"Save name":"Save name and start";
+  $("#nmName").value=change&&pl?pl.name:"";$("#nmShop").value=pl&&pl.shop||"";
+  $("#nmErr").hidden=true;$("#nmOffline").hidden=true;$("#nmGo").disabled=false;
+  $("#nameScrim").hidden=false;setTimeout(()=>$("#nmName").focus(),30);
+}
+$("#nameForm").onsubmit=e=>{e.preventDefault();const b=$("#nmGo");b.disabled=true;$("#nmErr").hidden=true;
+  const pl=lbPlayer(),nm=$("#nmName").value.trim(),sh=$("#nmShop").value.trim();
+  if(pl&&pl.name.toLowerCase()===nm.toLowerCase()&&(pl.shop||"")===sh){$("#nameScrim").hidden=true;const f=nameThen;nameThen=null;if(f)f();return;}
+  lbRegister(nm,sh).then(()=>{$("#nameScrim").hidden=true;renderDaily();const f=nameThen;nameThen=null;if(f)f();})
+    .catch(err=>{b.disabled=false;$("#nmErr").textContent=err.message;$("#nmErr").hidden=false;
+      if(!/taken|letters/.test(err.message)&&nameThen)$("#nmOffline").hidden=false;});};
+$("#nmCancel").onclick=()=>{$("#nameScrim").hidden=true;nameThen=null;};
+$("#nmOffline").onclick=()=>{$("#nameScrim").hidden=true;const f=nameThen;nameThen=null;if(f)f();};
 let lbTab="today";
 function openLeaderboard(tab){lbTab=tab||lbTab;$("#lbScrim").hidden=false;renderLeaderboard();}
 function renderLeaderboard(){
@@ -4702,9 +4736,12 @@ function renderDaily(){
   if(r&&r.done)h+='<div class="md-done"><div class="md-score"><b>'+r.score+'</b><span>/ 100 today</span></div><button class="big" id="dailyShare" type="button">Share result</button><button class="ghost" id="dailyLb" type="button">Leaderboard</button><span class="md-next">Next challenge in <b id="dNext">'+untilTomorrow()+'</b></span></div>';
   else if(started&&s&&s.daily&&s.daily.no===d.no&&!s.over)h+='<div class="md-done"><button class="big" id="dailyResume" type="button">Resume today\'s challenge</button><span class="md-next">Closing this page ends your attempt.</span></div>';
   else if(started)h+='<div class="md-done"><span class="md-miss">Attempt used: not finished.</span><button class="ghost" id="dailyLb" type="button">Leaderboard</button><span class="md-next">Next challenge in <b id="dNext">'+untilTomorrow()+'</b></span></div>';
-  else h+='<div class="md-done"><button class="big" id="dailyBtn" type="button">Start today\'s challenge</button><button class="ghost" id="dailyLb" type="button">Leaderboard</button><span class="md-next">One attempt. Leaving the call before closing it out uses it up.</span></div>';
+  else h+='<div class="md-done"><button class="big" id="dailyBtn" type="button">Start today\'s challenge</button><button class="ghost" id="dailyLb" type="button">Leaderboard</button><span class="md-next">One attempt. Leaving the call before closing it out uses it up. Your score posts to the leaderboard automatically.</span></div>';
+  const pl=lbPlayer();
+  h+='<p class="md-next" style="margin:10px 0 0">'+(pl?'Playing as <b>'+esc(pl.name)+'</b>'+(pl.shop?' · '+esc(pl.shop):'')+' · <button class="linkbtn" id="dailyName" type="button">Change name</button>':'You\'ll enter your leaderboard name before the call starts.')+'</p>';
   el.innerHTML=h;
-  const b=$("#dailyBtn");if(b)b.onclick=()=>{Snd.init();startDaily();};
+  const b=$("#dailyBtn");if(b)b.onclick=()=>{Snd.init();if(lbPlayer())startDaily();else askName(startDaily);};
+  const cn=$("#dailyName");if(cn)cn.onclick=()=>askName(null,true);
   const rs=$("#dailyResume");if(rs)rs.onclick=()=>{$("#menu").hidden=true;updateAmbient();};
   const sh=$("#dailyShare");if(sh)sh.onclick=()=>shareDaily(d.no,sh);
   const lb=$("#dailyLb");if(lb)lb.onclick=()=>openLeaderboard("today");
