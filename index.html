@@ -396,6 +396,24 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
 .dcats span{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .dcats .full{border-color:var(--ok)}.dcats .part{border-color:var(--accent)}.dcats .zero{border-color:var(--high)}
 @media (max-width:520px){.md-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.dcats{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.lb-table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.lb-table th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+.lb-table td{padding:8px;border-bottom:1px solid var(--line)}
+.lb-table td.n{text-align:right;font-family:var(--mono)}.lb-table th.n{text-align:right}
+.lb-table td.rk{font:700 15px var(--mono);color:var(--muted);width:44px}
+.lb-table tr.top1 td.rk{color:#f2b705}.lb-table tr.top2 td.rk{color:#c9d1d9}.lb-table tr.top3 td.rk{color:#d08a4a}
+.lb-table tr.me td{background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.lb-table .shop{display:block;font-size:12px;color:var(--muted)}
+.lb-empty{color:var(--muted);padding:18px 4px}
+.lb-me{color:var(--muted);font-size:13px;margin:12px 0 0}
+.lb-post{margin-top:16px;padding:14px;border:1px solid color-mix(in srgb,var(--accent) 50%,var(--line));border-radius:10px;background:color-mix(in srgb,var(--accent) 8%,var(--panel))}
+.lb-post h4{margin:0 0 6px!important}
+.lb-post p{margin:0 0 10px;color:#c9d1d9;font-size:13.5px}
+.lb-form{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.lb-form input{flex:1 1 160px;min-width:0;background:#0f1418;border:1px solid var(--line);border-radius:6px;padding:9px 10px;color:var(--ink);font:inherit}
+.lb-form input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.lb-err{color:var(--high);font-size:13px;margin:8px 0 0}
+.lb-ok{color:var(--ok);font-weight:600}
 .m-detail{margin:10px 0 0;padding:10px 12px;border-radius:8px;background:#0f1418;border:1px dashed var(--line);color:#c9d1d9;font-size:13px;min-height:44px}
 .m-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .m-row select{flex:1 1 260px;min-width:0;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:10px;color:var(--ink)}
@@ -582,6 +600,16 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
 </div>
 
 <!-- reference -->
+<div class="scrim" id="lbScrim" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="lbTitle">
+    <h2 id="lbTitle">Leaderboard</h2>
+    <p class="sub" id="lbSub">Daily challenge scores from techs everywhere.</p>
+    <div class="reftabs" id="lbTabs"></div>
+    <div id="lbBody"></div>
+    <p class="lb-me" id="lbMe"></p>
+    <div class="mact"><button class="ghost" id="lbClose" type="button">Close</button></div>
+  </div>
+</div>
 <div class="scrim" id="refScrim" hidden>
   <div class="modal ref" role="dialog" aria-modal="true" aria-labelledby="refTitle">
     <h2 id="refTitle">Field reference</h2>
@@ -4246,7 +4274,8 @@ function dailyDebrief(o){
   const pen=15*wrong.length+15*induced.length;
   const score=clamp(pts.reduce((a,b)=>a+b,0)-pen,0,100);
   const st=dailyStore();
-  st.res[s.daily.no]={no:s.daily.no,done:true,score,cats,diag,par:sc.par,wrong:wrong.length,sys:s.sysId,fixed:allFixed,verified};
+  st.res[s.daily.no]={no:s.daily.no,done:true,score,cats,diag,par:sc.par,wrong:wrong.length,sys:s.sysId,fixed:allFixed,verified,
+    log:{v:1,clock:s.clock,steps:s.log.slice(0,300).map(e=>[e.t,e.title]),repairs:s.repairs.map(r=>r.id)}};
   save(DKEY,st);
   const nm=["Fix","Proof","Verify","Time","Safety"],cl=v=>v>=1?"full":v>0?"part":"zero";
   const vcls=allFixed?(verified?"v-good":"v-mid"):"v-bad",vtxt=allFixed?(verified?"System verified":"Fixed, not verified"):"Callback";
@@ -4271,10 +4300,12 @@ function dailyDebrief(o){
     h+='<p class="explain">'+esc(fx.explain)+'</p></div>';});
   if(sc.herring)h+='<h4>Red herring</h4><div class="fcard"><h3>'+(s.done[sc.herring.clue]?'<span class="chip c-ok">Ruled out</span>':'<span class="chip c-n">Not checked</span>')+'</h3><p class="explain">'+esc(sc.herring.t)+'</p></div>';
   h+='<p class="md-next" style="margin:12px 0 0">Next challenge in <b>'+untilTomorrow()+'</b>. Current streak: <b>'+dailyStreak(st)+'</b>'+(allFixed?'':' (a callback breaks your streak)')+'</p>';
+  h+='<div class="lb-post" id="lbPost"></div>';
   h+='<div class="mact"><button class="ghost" id="debReview" type="button">Review the site</button><button class="ghost" id="debMenu" type="button">Main menu</button><button class="big" id="debShare" type="button">Share result</button></div>';
   $("#deb").innerHTML=h;$("#debScrim").hidden=false;
   renderAll();
   $("#debShare").onclick=()=>shareDaily(s.daily.no,$("#debShare"));
+  renderPost(s.daily.no);
   $("#debMenu").onclick=()=>{$("#debScrim").hidden=true;openMenu();};
   $("#debReview").onclick=()=>{$("#debScrim").hidden=true;};
 }
@@ -4601,6 +4632,66 @@ function shareDaily(no,btn){
   if(navigator.share&&matchMedia("(pointer:coarse)").matches){navigator.share({text:txt}).catch(()=>{});return;}
   (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(done).catch(()=>{const ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");done();}catch(e){}ta.remove();});
 }
+/* ================= leaderboard (Supabase) ================= */
+const SB_URL="https://rodtuscaemjmkbigtqlp.supabase.co",SB_KEY="sb_publishable_IC30jaObOVvtdajxcWeXgA_gShxofqi";
+async function sbRpc(fn,args){
+  const r=await fetch(SB_URL+"/rest/v1/rpc/"+fn,{method:"POST",headers:{"apikey":SB_KEY,"Content-Type":"application/json"},body:JSON.stringify(args||{})});
+  const t=await r.text();let j=null;try{j=t?JSON.parse(t):null;}catch(e){}
+  if(!r.ok)throw new Error((j&&(j.message||j.hint))||"The leaderboard isn't reachable right now.");
+  return j;
+}
+const lbPlayer=()=>load("scs-player",null);
+function newToken(){const a=new Uint8Array(24);crypto.getRandomValues(a);return Array.from(a,b=>b.toString(16).padStart(2,"0")).join("");}
+const NAME_RE=/^[A-Za-z0-9][A-Za-z0-9 ._'-]{1,23}$/;
+async function lbRegister(name,shop){
+  name=name.trim();shop=(shop||"").trim();
+  if(!NAME_RE.test(name))throw new Error("Use 2–24 letters, numbers, spaces, or . _ ' -");
+  const token=newToken(),id=await sbRpc("register_player",{p_name:name,p_shop:shop||null,p_token:token});
+  const pl={id,name,shop,token};save("scs-player",pl);return pl;
+}
+async function lbSubmit(no){
+  const st=dailyStore(),r=st.res[no],pl=lbPlayer();if(!r||!pl)return;
+  if(r.posted)return;
+  await sbRpc("submit_daily",{p_player:pl.id,p_token:pl.token,p_day:no,p_score:r.score,p_diag:r.diag,p_par:r.par,p_cats:r.cats,p_fixed:!!r.fixed,p_wrong:r.wrong||0,p_sys:r.sys,p_log:r.log||null}).catch(e=>{if(!/Already posted/.test(e.message))throw e;});
+  const st2=dailyStore();st2.res[no].posted=true;save(DKEY,st2);
+}
+function renderPost(no){
+  const el=$("#lbPost");if(!el)return;
+  const st=dailyStore(),r=st.res[no],pl=lbPlayer();if(!r)return;
+  if(r.posted){el.innerHTML='<h4>Leaderboard</h4><p><span class="lb-ok">Posted</span> as <b>'+esc(pl?pl.name:"you")+'</b> · <span id="lbRank">Checking your rank…</span></p><div class="lb-form"><button class="ghost" type="button" id="lbOpen2">View leaderboard</button></div>';
+    $("#lbOpen2").onclick=()=>openLeaderboard("today");
+    sbRpc("daily_board",{p_day:no}).then(rows=>{const me=(rows||[]).find(x=>pl&&x.name.toLowerCase()===pl.name.toLowerCase());const n=$("#lbRank");if(n)n.textContent=me?"You're #"+me.rank+" of "+rows.length+(rows.length>=100?"+":"")+" today.":"";}).catch(()=>{const n=$("#lbRank");if(n)n.textContent="";});
+    return;}
+  if(pl){el.innerHTML='<h4>Leaderboard</h4><p>Posting your score as <b>'+esc(pl.name)+'</b>…</p>';
+    lbSubmit(no).then(()=>renderPost(no)).catch(e=>{el.innerHTML='<h4>Leaderboard</h4><p class="lb-err">'+esc(e.message)+'</p><div class="lb-form"><button class="ghost" type="button" id="lbRetry">Try again</button></div>';$("#lbRetry").onclick=()=>renderPost(no);});
+    return;}
+  el.innerHTML='<h4>Post your score to the leaderboard</h4><p>Pick the name other techs will see. Add your shop or city if you like. Your name is saved on this device, and future dailies post automatically.</p>'+
+    '<form class="lb-form" id="lbForm"><input id="lbName" maxlength="24" placeholder="Name (e.g. Mike R.)" autocomplete="nickname" required><input id="lbShop" maxlength="40" placeholder="Shop or city (optional)"><button class="big" type="submit">Post score</button></form><p class="lb-err" id="lbErr" hidden></p>';
+  $("#lbForm").onsubmit=e=>{e.preventDefault();const b=e.target.querySelector("button");b.disabled=true;$("#lbErr").hidden=true;
+    lbRegister($("#lbName").value,$("#lbShop").value).then(()=>lbSubmit(no)).then(()=>renderPost(no)).catch(err=>{b.disabled=false;$("#lbErr").textContent=err.message;$("#lbErr").hidden=false;});};
+}
+let lbTab="today";
+function openLeaderboard(tab){lbTab=tab||lbTab;$("#lbScrim").hidden=false;renderLeaderboard();}
+function renderLeaderboard(){
+  const d=dailyInfo(),pl=lbPlayer();
+  $("#lbTabs").innerHTML='<button class="linkbtn" data-lbt="today" aria-pressed="'+(lbTab==="today")+'">Today · Daily #'+d.no+'</button><button class="linkbtn" data-lbt="all" aria-pressed="'+(lbTab==="all")+'">All-time</button>';
+  $("#lbSub").textContent=lbTab==="today"?"Highest score wins; ties go to the faster diagnosis.":"Average daily score. Shows techs with 3 or more dailies.";
+  $("#lbMe").innerHTML=pl?'Playing as <b>'+esc(pl.name)+'</b>'+(pl.shop?' · '+esc(pl.shop):'')+'.':'Finish a daily challenge to post your score and join the board.';
+  $("#lbBody").innerHTML='<p class="lb-empty">Loading…</p>';
+  const mine=x=>pl&&x.name.toLowerCase()===pl.name.toLowerCase();
+  const cls=x=>(x.rank<=3?"top"+x.rank:"")+(mine(x)?" me":"");
+  const who=x=>'<td>'+esc(x.name)+(x.shop?'<span class="shop">'+esc(x.shop)+'</span>':'')+'</td>';
+  const req=lbTab==="today"?sbRpc("daily_board",{p_day:d.no}):sbRpc("overall_board",{});
+  const tab=lbTab;
+  req.then(rows=>{if(tab!==lbTab)return;rows=rows||[];
+    if(!rows.length){$("#lbBody").innerHTML='<p class="lb-empty">'+(tab==="today"?"No scores yet today. Be the first.":"No one has 3 dailies yet. Check back soon.")+'</p>';return;}
+    $("#lbBody").innerHTML=tab==="today"?
+      '<table class="lb-table"><thead><tr><th>#</th><th>Tech</th><th class="n">Score</th><th class="n">Time</th></tr></thead><tbody>'+rows.map(x=>'<tr class="'+cls(x)+'"><td class="rk">'+x.rank+'</td>'+who(x)+'<td class="n"><b>'+x.score+'</b></td><td class="n">'+x.diag_min+' min'+(x.fixed?'':' <span title="Callback: a fault was left unfixed">⚠</span>')+'</td></tr>').join("")+'</tbody></table>':
+      '<table class="lb-table"><thead><tr><th>#</th><th>Tech</th><th class="n">Avg</th><th class="n">Best</th><th class="n">Dailies</th><th class="n">💯</th></tr></thead><tbody>'+rows.map(x=>'<tr class="'+cls(x)+'"><td class="rk">'+x.rank+'</td>'+who(x)+'<td class="n"><b>'+x.avg_score+'</b></td><td class="n">'+x.best+'</td><td class="n">'+x.days+'</td><td class="n">'+x.perfect+'</td></tr>').join("")+'</tbody></table>';
+  }).catch(e=>{if(tab===lbTab)$("#lbBody").innerHTML='<p class="lb-err">'+esc(e.message)+'</p>';});
+}
+$("#lbClose").onclick=()=>{$("#lbScrim").hidden=true;};
+document.addEventListener("click",e=>{const t=e.target.closest("[data-lbt]");if(t){lbTab=t.dataset.lbt;renderLeaderboard();}});
 function renderDaily(){
   const el=$("#mDaily");if(!el)return;
   const d=dailyInfo(),st=dailyStore(),r=st.res[d.no],started=st.started[d.no];
@@ -4608,14 +4699,16 @@ function renderDaily(){
   let h='<div class="md-head"><span class="md-tag">Daily challenge</span><b>#'+d.no+'</b><span class="md-date">'+esc(d.label)+'</span></div>'+
     '<p class="md-rules">The toughest call of the day, the same for every tech. Master Tech rules: no tips, no coaching. Often more than one fault. Strict scoring, and you only get one try.</p>'+
     '<div class="md-stats"><div><b>'+dailyStreak(st)+'</b><span>Streak</span></div><div><b>'+dailyMaxStreak(st)+'</b><span>Best streak</span></div><div><b>'+best+'</b><span>Best score</span></div><div><b>'+avg+'</b><span>Average</span></div></div>';
-  if(r&&r.done)h+='<div class="md-done"><div class="md-score"><b>'+r.score+'</b><span>/ 100 today</span></div><button class="big" id="dailyShare" type="button">Share result</button><span class="md-next">Next challenge in <b id="dNext">'+untilTomorrow()+'</b></span></div>';
+  if(r&&r.done)h+='<div class="md-done"><div class="md-score"><b>'+r.score+'</b><span>/ 100 today</span></div><button class="big" id="dailyShare" type="button">Share result</button><button class="ghost" id="dailyLb" type="button">Leaderboard</button><span class="md-next">Next challenge in <b id="dNext">'+untilTomorrow()+'</b></span></div>';
   else if(started&&s&&s.daily&&s.daily.no===d.no&&!s.over)h+='<div class="md-done"><button class="big" id="dailyResume" type="button">Resume today\'s challenge</button><span class="md-next">Closing this page ends your attempt.</span></div>';
-  else if(started)h+='<div class="md-done"><span class="md-miss">Attempt used: not finished.</span><span class="md-next">Next challenge in <b id="dNext">'+untilTomorrow()+'</b></span></div>';
-  else h+='<div class="md-done"><button class="big" id="dailyBtn" type="button">Start today\'s challenge</button><span class="md-next">One attempt. Leaving the call before closing it out uses it up.</span></div>';
+  else if(started)h+='<div class="md-done"><span class="md-miss">Attempt used: not finished.</span><button class="ghost" id="dailyLb" type="button">Leaderboard</button><span class="md-next">Next challenge in <b id="dNext">'+untilTomorrow()+'</b></span></div>';
+  else h+='<div class="md-done"><button class="big" id="dailyBtn" type="button">Start today\'s challenge</button><button class="ghost" id="dailyLb" type="button">Leaderboard</button><span class="md-next">One attempt. Leaving the call before closing it out uses it up.</span></div>';
   el.innerHTML=h;
   const b=$("#dailyBtn");if(b)b.onclick=()=>{Snd.init();startDaily();};
   const rs=$("#dailyResume");if(rs)rs.onclick=()=>{$("#menu").hidden=true;updateAmbient();};
   const sh=$("#dailyShare");if(sh)sh.onclick=()=>shareDaily(d.no,sh);
+  const lb=$("#dailyLb");if(lb)lb.onclick=()=>openLeaderboard("today");
+  if(r&&r.done&&!r.posted&&lbPlayer())lbSubmit(d.no).catch(()=>{});
 }
 setInterval(()=>{const n=$("#dNext");if(n&&!$("#menu").hidden)n.textContent=untilTomorrow();},30000);
 function startCall(sc){
