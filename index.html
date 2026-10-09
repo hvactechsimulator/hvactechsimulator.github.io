@@ -4738,7 +4738,7 @@ function renderDaily(){
   else if(started)h+='<div class="md-done"><span class="md-miss">Attempt used: not finished.</span><button class="ghost" id="dailyLb" type="button">Leaderboard</button><span class="md-next">Next challenge in <b id="dNext">'+untilTomorrow()+'</b></span></div>';
   else h+='<div class="md-done"><button class="big" id="dailyBtn" type="button">Start today\'s challenge</button><button class="ghost" id="dailyLb" type="button">Leaderboard</button><span class="md-next">One attempt. Leaving the call before closing it out uses it up. Your score posts to the leaderboard automatically.</span></div>';
   const pl=lbPlayer();
-  h+='<p class="md-next" style="margin:10px 0 0">'+(pl?'Playing as <b>'+esc(pl.name)+'</b>'+(pl.shop?' · '+esc(pl.shop):'')+' · <button class="linkbtn" id="dailyName" type="button">Change name</button>':'You\'ll enter your leaderboard name before the call starts.')+'</p>';
+  if(pl)h+='<p class="md-next" style="margin:10px 0 0">Playing as <b>'+esc(pl.name)+'</b>'+(pl.shop?' · '+esc(pl.shop):'')+' · <button class="linkbtn" id="dailyName" type="button">Change name</button></p>';
   el.innerHTML=h;
   const b=$("#dailyBtn");if(b)b.onclick=()=>{Snd.init();if(lbPlayer())startDaily();else askName(startDaily);};
   const cn=$("#dailyName");if(cn)cn.onclick=()=>askName(null,true);
