@@ -70,7 +70,39 @@ button:focus-visible,select:focus-visible,label:focus-within{outline:2px solid v
 .game{display:grid;grid-template-columns:minmax(0,270px) minmax(0,1fr) minmax(0,330px);gap:18px;margin-top:18px;align-items:start}
 @media (max-width:1240px){.game{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.col-site{grid-column:1/-1;order:-1}}
 @media (max-width:700px){.game{grid-template-columns:minmax(0,1fr)}}
+@media (min-width:1241px) and (min-height:600px){
+  .wrap,.bar-in,.callbar-in{max-width:1780px}
+  .wrap{padding-block:0}
+  .game{grid-template-columns:minmax(0,260px) minmax(0,1fr) minmax(0,320px);gap:16px}
+  .game{height:calc(100dvh - var(--hdrH,62px) - var(--cbH,64px) - 24px);margin-top:12px;align-items:stretch}
+  .col{overflow-y:auto;overscroll-behavior:contain;min-height:0;scrollbar-width:thin}
+  .col-site{overflow:hidden}
+  .col-site>div{min-height:0}
+  .col-site h2.sec{display:none}
+  .col-right{gap:14px}
+  #toolDock .belt{border:1px solid var(--line);border-radius:8px;padding:10px;gap:10px;flex-direction:column}
+  #toolDock .tools{flex:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+  #toolDock .tool{width:auto}
+  #toolDock .tool svg{width:32px;height:32px}
+  #toolDock .lcdcase{flex:none;min-width:0}
+  #toolDock .dial{width:84px}
+  #toolDock .mms{display:grid;grid-template-columns:1fr 1fr;gap:2px}
+  #infoDock .winfo{border:1px solid var(--line);border-radius:8px;min-height:0}
+  #infoDock:empty{display:none}
+  .col-right .notes{flex:1 1 auto;min-height:180px;display:flex;flex-direction:column}
+  .col-right .log{flex:1;min-height:0;display:flex;flex-direction:column}
+  .col-right .entries{max-height:none;flex:1;min-height:0}
+}
 .col{display:flex;flex-direction:column;gap:18px;min-width:0}
+.fold>summary{list-style:none;display:flex;align-items:baseline;gap:10px;cursor:pointer;margin:0 0 8px;flex-wrap:wrap}
+.fold>summary::-webkit-details-marker{display:none}
+.fold>summary h2.sec{margin:0;display:flex;align-items:center;gap:8px}
+.fold>summary h2.sec::before{content:"";width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .15s;margin-right:2px}
+.fold[open]>summary h2.sec::before{transform:rotate(45deg)}
+.fold>summary:hover h2.sec{color:var(--ink)}
+.fold-sum{font-size:12px;color:var(--muted);min-width:0}
+.fold[open] .fold-sum{display:none}
+.fold-sum .pri{font-size:10.5px;padding:1px 6px}
 h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
 
 /* work order */
@@ -108,7 +140,7 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
 .coach p{margin:0;max-width:90ch}
 .coach-hl{box-shadow:0 0 0 2px var(--accent),0 0 18px rgba(242,183,5,.45)!important;animation:hl 1.4s ease-in-out infinite}
 @keyframes hl{50%{box-shadow:0 0 0 2px var(--accent),0 0 4px rgba(242,183,5,.2)}}
-.stage{position:relative;aspect-ratio:800/500;max-width:100%;background:#0e1216;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.stage{position:relative;aspect-ratio:800/500;max-width:100%;margin-inline:auto;background:#0e1216;user-select:none;-webkit-user-select:none;touch-action:manipulation}
 .stage svg.scene{position:absolute;inset:0;width:100%;height:100%;display:block}
 .stage.flash::after{content:"";position:absolute;inset:0;background:rgba(229,72,77,.35);animation:flash .6s ease-out forwards;pointer-events:none}
 @keyframes flash{to{opacity:0}}
@@ -400,15 +432,15 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
 
 <div class="wrap">
   <main class="game">
-    <section class="col">
-      <div>
-        <h2 class="sec">Work order</h2>
+    <section class="col col-left">
+      <details class="fold" id="foldWo" open>
+        <summary><h2 class="sec">Work order</h2><span class="fold-sum" id="woSum"></span></summary>
         <div class="wo" id="wo"></div>
-      </div>
-      <div>
-        <h2 class="sec">Condenser nameplate</h2>
+      </details>
+      <details class="fold" id="foldPlate">
+        <summary><h2 class="sec" id="plateTitle">Condenser nameplate</h2><span class="fold-sum" id="plateSum"></span></summary>
         <div class="plate" id="plate"></div>
-      </div>
+      </details>
     </section>
 
     <section class="col col-site">
@@ -436,7 +468,7 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
           </div>
           <div class="dock" id="dock" hidden></div>
           <div class="winfo" id="winfo" aria-live="polite" hidden></div>
-          <div class="belt">
+          <div class="belt" id="belt">
             <div class="tools" id="tools" role="toolbar" aria-label="Tool belt"></div>
             <div class="lcdcase" id="lcdcase" data-tool="hand">
               <div class="lcd" id="lcd">
@@ -456,15 +488,17 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
       </div>
     </section>
 
-    <section class="col">
-      <div id="panelSeq" hidden>
-        <h2 class="sec" id="seqTitle">Sequence of operation</h2>
+    <section class="col col-right">
+      <div id="toolDock"><h2 class="sec">Tools</h2></div>
+      <div id="infoDock"></div>
+      <details class="fold" id="panelSeq" open hidden>
+        <summary><h2 class="sec" id="seqTitle">Sequence of operation</h2></summary>
         <div class="manifold">
           <ol class="steps" id="seqSteps"></ol>
           <p class="mf-note" id="seqNote"></p>
           <div class="recs" id="seqRecs"></div>
         </div>
-      </div>
+      </details>
       <div id="panelMan">
         <h2 class="sec">Manifold</h2>
         <div class="manifold">
@@ -475,7 +509,7 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
           <p class="mf-note" id="mfNote">Hoses not connected.</p>
         </div>
       </div>
-      <div>
+      <div class="notes">
         <h2 class="sec">Field notes</h2>
         <div class="log"><div class="entries" id="log"></div></div>
       </div>
@@ -1789,7 +1823,6 @@ rep(5,i=>'<path d="M'+(486+i*8)+' '+(318-i*22)+' q-5 5 0 10" stroke="#b87333" st
 '<path d="M586 338 H614 V398 q0 12 12 12 q12 0 12 -12 V380 H660" stroke="#e7e7e2" stroke-width="7" fill="none"/>'+
 '<g><rect x="566" y="330" width="26" height="18" rx="2" fill="#e6e0cf" stroke="#9c9686"/><rect x="576" y="348" width="6" height="8" fill="#e6e0cf"/>'+
 '<circle id="floatBody" cx="579" cy="362" r="5" fill="#f4f4f4" class="slide"/><circle id="floatFlag" cx="572" cy="339" r="3" fill="#9aa0a6"/></g>'+
-'<line x1="566" y1="336" x2="440" y2="336" stroke="#d23c3c" stroke-width="1.4" stroke-dasharray="3 2"/>'+
 '<g id="mk-attic"></g>'+
 HS("tReturn",24,222,90,56)+HS("static",630,280,52,40)+HS("tSupply",610,196,92,62)+
 HS("filter",116,192,32,150,4)+'<g id="doorHS">'+HS("door",166,206,280,130,4)+'</g>'+
@@ -2504,7 +2537,7 @@ function showScene(k){
   const zb=$("#zBack");zb.hidden=!ZPARENT[k];if(ZPARENT[k])$("#zBackT").textContent="Back to "+SCENE_DEFS[room].n.toLowerCase();
   Object.keys(SCENES).forEach(n=>{$("#sc-"+n).toggleAttribute("hidden",n!==k);});
   if(isW(k)){wClear();}else $("#winfo").hidden=true;
-  updateAmbient();coachCheck();paintHotspots();
+  updateAmbient();coachCheck();paintHotspots();fitStage();
 }
 const setOp=(id,v)=>{const e=document.getElementById(id);if(e)e.setAttribute("opacity",v?1:0);};
 const cls=(id,c,on)=>{const e=document.getElementById(id);if(e)e.classList.toggle(c,!!on);};
@@ -3959,7 +3992,7 @@ function zoomTo(k){Snd.tick();showScene(k);}
 function bumpClock(){const c=$("#sClock");c.classList.remove("bump");void c.offsetWidth;c.classList.add("bump");}
 function selectTool(id){
   if(id!==tool&&WN){wprobe=[];if(wsel&&tool==="clamp")wsel=null;drawProbes();}
-  tool=id;Snd.tick();
+  tool=id;Snd.tick();syncMan();
   $$(".tool").forEach(b=>b.setAttribute("aria-pressed",b.dataset.tool===id));
   lcdShow(id,lcdMem[id],false);coachCheck();paintHotspots();
   if(isW(scene)&&!wsel)wInfoDefault();
@@ -4253,6 +4286,9 @@ function renderTop(){
   const dis=s.over;["#waitBtn","#repairBtn"].forEach(q=>$(q).disabled=dis);
   $("#closeBtn").textContent=s.over?"Next call":"Close out call";
 }
+["foldWo","foldPlate","panelSeq"].forEach(id=>{const el=$("#"+id);const k="fold:"+id;
+  try{const v=localStorage.getItem("scs-"+k);if(v!=null)el.open=v==="1";}catch(e){}
+  el.addEventListener("toggle",()=>{try{localStorage.setItem("scs-"+k,el.open?"1":"0");}catch(e){}});});
 function renderTicket(){
   const u=s.u,sc=s.sc;
   $("#wo").innerHTML='<div class="wo-head"><h3>Service call</h3><span class="wo-no">WO #'+woNo+'</span></div>'+
@@ -4261,18 +4297,19 @@ function renderTicket(){
     '<dt>Equipment</dt><dd>'+({ac:u.tons+"-ton split AC, R-410A, TXV · 80% gas furnace in the attic",furnace:"96% condensing gas furnace, upflow, basement utility room",boiler:"Gas-fired hydronic boiler · 2 zones · baseboard"})[s.sysId]+'</dd>'+
     '<dt>Priority</dt><dd><span class="pri">'+esc(sc.pri||"No cool")+'</span></dd></dl>'+
     '<div class="complaint"><small>Dispatch notes</small>'+esc(sc.ticket)+'</div>';
+  $("#woSum").innerHTML=esc(s.cust)+' · <span class="pri">'+esc(sc.pri||"No cool")+'</span>';
   const row=(a,b)=>'<tr><td>'+a+'</td><td>'+b+'</td></tr>';
   if(s.sysId==="furnace"){const f=s.f;
-    $("#plate").previousElementSibling.textContent="Furnace nameplate";
+    $("#plateTitle").textContent="Furnace nameplate";$("#plateSum").textContent="GF96-080U · 80k Btu/h";
     $("#plate").innerHTML='<h4>Gas furnace · GF96-080U</h4><table>'+row("Input · output","80,000 · 77,000 Btu/h")+row("Temperature rise","35–65°F")+row("Gas","Natural · manifold 3.5 in. w.c.")+
       row("Inlet pressure","4.5–10.5 in. w.c.")+row("Pressure switch","closes at −"+f.ps.toFixed(2)+" in. w.c.")+row("Inducer","120 V · "+f.indA+" A")+
       (f.blower==="psc"?row("Blower","PSC 1/2 hp · FLA "+f.bfla)+row("Blower capacitor",f.capB+" µF ±6% 370 VAC"):row("Blower","ECM 1/2 hp · FLA "+f.bfla))+
       row("Control fuse","3 A")+'</table><h4 style="margin-top:10px">Status LED codes</h4><table>'+row("Slow flash","Normal")+row("1 flash","Ignition lockout")+row("2 flashes","Pressure switch open, inducer on")+row("3 flashes","Pressure switch closed, inducer off")+row("4 flashes","Limit or rollout open")+row("Steady / off","Board fault / no power")+'</table>';return;}
   if(s.sysId==="boiler"){
-    $("#plate").previousElementSibling.textContent="Boiler nameplate";
+    $("#plateTitle").textContent="Boiler nameplate";$("#plateSum").textContent="HB-100 · 100k Btu/h";
     $("#plate").innerHTML='<h4>Gas boiler · HB-100</h4><table>'+row("Input","100,000 Btu/h")+row("Max working pressure","30 psi")+row("Relief valve","30 psi")+row("Operating control","180°F · 15°F differential")+
       row("High limit","200°F")+row("Circulator","1/25 hp · 0.75 A")+row("Zone valves","24 VAC powerheads, end switch to T–T")+row("Fill pressure","12 psi cold (2-story)")+'</table>';return;}
-  $("#plate").previousElementSibling.textContent="Condenser nameplate";
+  $("#plateTitle").textContent="Condenser nameplate";$("#plateSum").textContent=u.model+" · RLA "+u.rla+" · "+u.capH+"+"+u.capF+" µF";
   $("#plate").innerHTML='<h4>Condensing unit · '+u.model+'</h4><table>'+
     '<tr><td>Refrigerant</td><td>R-410A · '+u.charge+'</td></tr><tr><td>Metering</td><td>TXV (indoor coil)</td></tr>'+
     '<tr><td>Target subcooling</td><td>10°F ±2</td></tr><tr><td>Compressor</td><td>RLA '+u.rla+' · LRA '+u.lra+'</td></tr>'+
@@ -4319,8 +4356,30 @@ const STEPS={
   boiler:[["call","Zone thermostat calls"],["zv","Zone valve opens"],["end","End switch closes (T–T)"],["circ","Circulator runs"],["demand","Control calls for the burner"],
     ["ign","Igniter heats"],["gv","Gas valve opens"],["lit","Burner lights"],["prove","Flame proven"],["heat","Water heats, flows to open zones"]]
 };
+/* desktop: everything fits one screen. Tools and wire info sit in the right column; the manifold shows while the gauge set is in hand. */
+const DESK=matchMedia("(min-width:1241px) and (min-height:600px)");
+const isDesk=()=>DESK.matches;
+function syncMan(){if(!s)return;$("#panelMan").hidden=s.sysId!=="ac"||(isDesk()&&tool!=="gauges");}
+function placeUI(){
+  const d=isDesk(),belt=$("#belt"),wi=$("#winfo"),site=$(".site");
+  if(d){$("#toolDock").appendChild(belt);$("#infoDock").appendChild(wi);}
+  else{site.appendChild(wi);site.appendChild(belt);}
+  document.documentElement.style.setProperty("--hdrH",$(".bar").offsetHeight+"px");
+  document.documentElement.style.setProperty("--cbH",$(".callbar").offsetHeight+"px");
+  syncMan();fitStage();
+}
+function fitStage(){
+  const st=$("#stage");if(!st)return;
+  if(!isDesk()){st.style.width="";return;}
+  const site=st.parentElement,top=st.getBoundingClientRect().top,cb=$(".callbar").offsetHeight;
+  const avail=Math.max(260,innerHeight-cb-top-14),w=Math.min(site.clientWidth,avail*1.6);
+  st.style.width=Math.floor(w)+"px";
+}
+DESK.addEventListener("change",placeUI);
+addEventListener("resize",()=>{clearTimeout(fitStage.t);fitStage.t=setTimeout(placeUI,60);});
+if(window.ResizeObserver)new ResizeObserver(()=>fitStage()).observe($("#coach"));
 function renderSeq(){
-  const heat=s.sysId!=="ac";$("#panelSeq").hidden=!heat;$("#panelMan").hidden=heat;if(!heat)return;
+  const heat=s.sysId!=="ac";$("#panelSeq").hidden=!heat;syncMan();if(!heat)return;
   $("#seqTitle").textContent=s.sysId==="boiler"?"Boiler sequence of operation":"Furnace sequence of operation";
   const ev=play?play.ev.slice(0,play.idx+1):s.lastCycle?s.lastCycle.ev:[];
   const cur=play&&play.idx>=0?play.ev[play.idx].step:null;
@@ -4521,6 +4580,7 @@ buildGauge($("#mgLow"),300,50,"#3d8fe8","LOW");buildGauge($("#mgHigh"),800,100,"
 setTimeout(()=>{setNeedle($("#mgLow"),118,300);setNeedle($("#mgHigh"),335,800);},250);
 /* a live call sits behind the menu so the page is never empty */
 startCall(SCN.find(x=>x.diff===prefs.diff)||SCN[0]);s.over=true;
+placeUI();
 openMenu();
 requestAnimationFrame(frame);})();
 </script>
