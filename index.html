@@ -674,27 +674,43 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
       <p>Residential HVAC troubleshooting. Take the call, test the equipment, make the repair, and verify the system before you leave.</p>
       <div class="m-gauges"><svg id="mgLow" viewBox="0 0 200 200" aria-hidden="true"></svg><svg id="mgHigh" viewBox="0 0 200 200" aria-hidden="true"></svg></div>
       <svg class="m-van" viewBox="0 0 400 160" aria-hidden="true">
-        <rect x="0" y="146" width="400" height="3" fill="#2d3843"/>
-        <!-- cargo body -->
-        <path d="M14 132 V30 Q14 16 28 16 H232 V132Z" fill="#e4e9ee"/>
-        <line x1="120" y1="22" x2="120" y2="128" stroke="#c9d0d6" stroke-width="1.5"/>
-        <rect x="14" y="70" width="218" height="6" fill="#f2b705"/>
-        <text x="26" y="56" font-family="Saira Condensed,Arial Narrow,sans-serif" font-weight="800" font-size="24" fill="#1a2129">HEATING · COOLING</text>
-        <text x="26" y="98" font-family="IBM Plex Mono,monospace" font-size="10" fill="#5d6874">24 HR SERVICE</text>
-        <text x="26" y="112" font-family="IBM Plex Mono,monospace" font-size="10" fill="#5d6874">LIC. #HV-2291</text>
-        <!-- cab -->
-        <path d="M232 132 V16 H262 Q280 16 290 32 L312 78 Q330 82 332 96 V132Z" fill="#d3dae0"/>
-        <path d="M242 26 H262 Q272 26 278 38 L296 76 H242Z" fill="#1a2129"/>
-        <line x1="240" y1="80" x2="240" y2="128" stroke="#b9c1c8" stroke-width="1.5"/><rect x="250" y="88" width="14" height="4" rx="2" fill="#8e9aa7"/>
-        <rect x="322" y="98" width="10" height="7" rx="2" fill="#f2b705"/>
-        <rect x="8" y="126" width="12" height="8" rx="2" fill="#8e9aa7"/><rect x="316" y="124" width="20" height="9" rx="3" fill="#8e9aa7"/>
+        <defs><clipPath id="vanBody"><path d="M10 128 V36 Q10 22 24 22 H250 Q262 22 270 36 L292 74 Q306 78 308 92 V120 Q308 128 300 128 H287 A25 25 0 0 0 237 128 H103 A25 25 0 0 0 53 128 Z"/></clipPath></defs>
+        <rect x="0" y="147" width="400" height="3" fill="#2d3843"/>
+        <ellipse cx="160" cy="148" rx="150" ry="3" fill="#0b0f13" opacity=".6"/>
+        <!-- ladder rack -->
+        <g fill="#8e9aa7"><rect x="46" y="14" width="4" height="9"/><rect x="186" y="14" width="4" height="9"/>
+          <rect x="36" y="10" width="166" height="3" rx="1.5"/><rect x="36" y="16" width="166" height="3" rx="1.5"/></g>
+        <path d="M48 10 V19 M68 10 V19 M88 10 V19 M108 10 V19 M128 10 V19 M148 10 V19 M168 10 V19 M188 10 V19" stroke="#6d757c" stroke-width="2"/>
+        <!-- body -->
+        <path d="M10 128 V36 Q10 22 24 22 H250 Q262 22 270 36 L292 74 Q306 78 308 92 V120 Q308 128 300 128 H287 A25 25 0 0 0 237 128 H103 A25 25 0 0 0 53 128 Z" fill="#e4e9ee"/>
+        <g clip-path="url(#vanBody)">
+          <rect x="0" y="72" width="320" height="7" fill="#f2b705"/>
+          <rect x="0" y="118" width="320" height="12" fill="#c9d0d6"/>
+          <path d="M268 36 L292 74 Q306 78 308 92 V128 H300 V96 Q298 84 286 80 L262 40Z" fill="#d3dae0"/>
+        </g>
+        <!-- windshield + door window -->
+        <path d="M244 30 H260 Q266 30 270 38 L288 72 H244Z" fill="#1a2129"/>
+        <path d="M256 32 L276 70" stroke="#3a4652" stroke-width="5" stroke-linecap="round" opacity=".7"/>
+        <!-- panel seams -->
+        <path d="M240 26 V126 M196 26 V124" stroke="#c3cad1" stroke-width="1.5"/>
+        <rect x="226" y="86" width="12" height="4" rx="2" fill="#8e9aa7"/><rect x="182" y="86" width="10" height="4" rx="2" fill="#8e9aa7"/>
+        <!-- mirror, headlight, bumpers -->
+        <rect x="238" y="56" width="5" height="12" rx="2" fill="#1a2129"/>
+        <path d="M298 86 H306 Q308 86 308 90 V96 H298Z" fill="#fff6cc"/>
+        <rect x="294" y="118" width="20" height="9" rx="3" fill="#6d757c"/><rect x="4" y="118" width="12" height="9" rx="2" fill="#6d757c"/>
+        <rect x="8" y="88" width="4" height="12" rx="1" fill="#e5484d"/>
+        <!-- lettering -->
+        <text x="22" y="56" font-family="Saira Condensed,Arial Narrow,sans-serif" font-weight="800" font-size="23" fill="#1a2129">HEATING · COOLING</text>
+        <text x="110" y="98" font-family="IBM Plex Mono,monospace" font-size="9.5" fill="#5d6874">24 HR SERVICE</text>
+        <text x="110" y="111" font-family="IBM Plex Mono,monospace" font-size="9.5" fill="#5d6874">LIC. #HV-2291</text>
+        <g transform="translate(203,86) scale(.062)"><circle cx="256" cy="270" r="176" fill="#1a2129" stroke="#e4e9ee" stroke-width="22"/><path d="M165.5 360.5 A128 128 0 0 1 244.8 142.5" stroke="#3d8fe8" stroke-width="40" fill="none"/><path d="M267.2 142.5 A128 128 0 0 1 346.5 360.5" stroke="#e5484d" stroke-width="40" fill="none"/><line x1="198.0" y1="328.0" x2="188.1" y2="337.9" stroke="#8e9aa7" stroke-width="6" stroke-linecap="round"/><line x1="178.0" y1="295.3" x2="164.7" y2="299.7" stroke="#8e9aa7" stroke-width="6" stroke-linecap="round"/><line x1="175.0" y1="257.2" x2="161.2" y2="255.0" stroke="#8e9aa7" stroke-width="6" stroke-linecap="round"/><line x1="189.7" y1="221.8" x2="178.3" y2="213.6" stroke="#8e9aa7" stroke-width="6" stroke-linecap="round"/><line x1="218.8" y1="196.9" x2="212.4" y2="184.5" stroke="#8e9aa7" stroke-width="6" stroke-linecap="round"/><line x1="256.0" y1="188.0" x2="256.0" y2="174.0" stroke="#8e9aa7" stroke-width="6" stroke-linecap="round"/><line x1="293.2" y1="196.9" x2="299.6" y2="184.5" stroke="#8e9aa7" stroke-width="6" stroke-linecap="round"/><line x1="322.3" y1="221.8" x2="333.7" y2="213.6" stroke="#8e9aa7" stroke-width="6" stroke-linecap="round"/><line x1="337.0" y1="257.2" x2="350.8" y2="255.0" stroke="#8e9aa7" stroke-width="6" stroke-linecap="round"/><line x1="334.0" y1="295.3" x2="347.3" y2="299.7" stroke="#8e9aa7" stroke-width="6" stroke-linecap="round"/><line x1="314.0" y1="328.0" x2="323.9" y2="337.9" stroke="#8e9aa7" stroke-width="6" stroke-linecap="round"/><path d="M356.4 158.5 L241.1 256.6 L233.2 295.3 L270.9 283.4Z" fill="#f2b705" stroke="#1b1600" stroke-width="5" stroke-linejoin="round"/><circle cx="256" cy="270" r="30" fill="#f2b705" stroke="#1b1600" stroke-width="5"/><circle cx="256" cy="270" r="10" fill="#1b1600"/><path d="M264 370 L236 410 L254 410 L246 440 L278 398 L259 398Z" fill="#f2b705" stroke="#1b1600" stroke-width="4" stroke-linejoin="round"/></g>
         <!-- wheels -->
-        <circle cx="72" cy="126" r="21" fill="#12171d"/><circle cx="72" cy="126" r="16" fill="#1a2129"/><circle cx="72" cy="126" r="7" fill="#8e9aa7"/>
-        <circle cx="276" cy="126" r="21" fill="#12171d"/><circle cx="276" cy="126" r="16" fill="#1a2129"/><circle cx="276" cy="126" r="7" fill="#8e9aa7"/>
+        <g><circle cx="78" cy="126" r="21" fill="#12171d"/><circle cx="78" cy="126" r="13" fill="#3a4046"/><circle cx="78" cy="126" r="5" fill="#8e9aa7"/></g>
+        <g><circle cx="262" cy="126" r="21" fill="#12171d"/><circle cx="262" cy="126" r="13" fill="#3a4046"/><circle cx="262" cy="126" r="5" fill="#8e9aa7"/></g>
         <!-- condenser beside the van -->
-        <g transform="translate(348,94)"><rect x="0" y="4" width="46" height="48" rx="2" fill="#8f979e"/>
-          <path d="M5 14 H41 M5 21 H41 M5 28 H41 M5 35 H41 M5 42 H41" stroke="#6d757c" stroke-width="2.5"/>
-          <ellipse cx="23" cy="4" rx="18" ry="4" fill="#2a2e33"/></g>
+        <g transform="translate(340,95)"><rect x="0" y="4" width="50" height="48" rx="2" fill="#8f979e"/>
+          <path d="M5 14 H45 M5 21 H45 M5 28 H45 M5 35 H45 M5 42 H45" stroke="#6d757c" stroke-width="2.5"/>
+          <ellipse cx="25" cy="4" rx="20" ry="4" fill="#2a2e33"/></g>
       </svg>
       <div class="m-career" id="mCareer"></div>
     </div>
