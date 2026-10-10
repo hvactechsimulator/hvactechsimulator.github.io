@@ -342,7 +342,7 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
 
 /* ---------- main menu ---------- */
 .menu{position:fixed;inset:0;z-index:50;overflow:auto;background:#161b20;
-  --paper:#f3f4f0;--form:#21487e;--pencil:#24282d;--canary:#f4e48c;--alu:#a7afb6;
+  --sheet:#f3f4f0;--form:#21487e;--pencil:#24282d;--canary:#f4e48c;--alu:#a7afb6;
   padding:max(28px,env(safe-area-inset-top,0px)) 16px max(24px,env(safe-area-inset-bottom,0px))}
 .menu-in{max-width:1120px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);grid-template-areas:"top top" "board side" "legal legal";gap:22px 40px;align-items:start}
 .m-top{grid-area:top;display:flex;gap:16px;align-items:center}
@@ -354,14 +354,14 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
 /* clipboard + work order */
 .board{grid-area:board;position:relative;background:linear-gradient(180deg,#b3bac0,#959da5);border-radius:10px;padding:34px 12px 12px;box-shadow:0 18px 40px rgba(0,0,0,.45)}
 .board::before{content:"";position:absolute;top:8px;left:50%;transform:translateX(-50%);width:132px;height:38px;border-radius:8px 8px 14px 14px;background:linear-gradient(180deg,#5c646c,#3a4047);box-shadow:0 3px 0 #2a2f34;z-index:2}
-.wo{background:var(--paper);color:var(--pencil);border-radius:2px;padding:30px 24px 22px;box-shadow:0 1px 0 #d5d8d2,0 2px 0 #e6e8e3}
-.wo-top{display:flex;justify-content:space-between;align-items:baseline;border-bottom:3px solid var(--form);padding-bottom:6px;margin-bottom:4px;color:var(--form)}
-.wo-top h2{margin:0;font-family:var(--display);font-weight:800;font-size:26px;line-height:1}
-.wo-no{font-size:13px}.wo-no b{font:600 17px var(--mono);color:#b3261e;margin-left:4px}
-.wo-field{display:grid;grid-template-columns:118px minmax(0,1fr);gap:12px;padding:12px 0;border-bottom:1px solid #b9c6d8}
-.wo-field h3{margin:0;font:600 13px var(--sans,inherit);color:var(--form);padding-top:2px}
-.wo-field h3 label{font:inherit;color:inherit}
-@media (max-width:560px){.wo{padding:28px 16px 18px}.wo-field{grid-template-columns:minmax(0,1fr);gap:6px}}
+.mwo{background:var(--sheet);color:var(--pencil);border-radius:2px;padding:30px 24px 22px;box-shadow:0 1px 0 #d5d8d2,0 2px 0 #e6e8e3}
+.mwo-top{display:flex;justify-content:space-between;align-items:baseline;border-bottom:3px solid var(--form);padding-bottom:6px;margin-bottom:4px;color:var(--form)}
+.mwo-top h2{margin:0;font-family:var(--display);font-weight:800;font-size:26px;line-height:1}
+.mwo-no{font-size:13px}.mwo-no b{font:600 17px var(--mono);color:#b3261e;margin-left:4px}
+.mwo-field{display:grid;grid-template-columns:118px minmax(0,1fr);gap:12px;padding:12px 0;border-bottom:1px solid #b9c6d8}
+.mwo-field h3{margin:0;font:600 13px var(--sans,inherit);color:var(--form);padding-top:2px}
+.mwo-field h3 label{font:inherit;color:inherit}
+@media (max-width:560px){.mwo{padding:28px 16px 18px}.mwo-field{grid-template-columns:minmax(0,1fr);gap:6px}}
 .opts{display:flex;flex-wrap:wrap;gap:8px 18px}
 .opt{display:flex;gap:9px;align-items:flex-start;text-align:left;background:none;border:0;padding:2px 0;color:var(--pencil);flex:1 1 120px;min-width:0}
 .opt i{flex:none;width:18px;height:18px;margin-top:1px;border:2px solid var(--form);border-radius:2px;background:#fff center/16px no-repeat}
@@ -376,8 +376,8 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
 .m-row select{flex:1 1 240px;min-width:0;background:#fff;border:1px solid #9fb0c6;border-radius:3px;padding:8px;color:var(--pencil)}
 .m-start{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:18px}
 .m-start .big{font-size:20px;padding:12px 26px;text-transform:none;letter-spacing:.01em;box-shadow:0 2px 0 #9a7400}
-.wo .ghost{background:none;border:1px solid #9fb0c6;color:var(--form)}
-.wo .ghost:hover{border-color:var(--form)}
+.mwo .ghost{background:none;border:1px solid #9fb0c6;color:var(--form)}
+.mwo .ghost:hover{border-color:var(--form)}
 /* right column */
 .m-side{grid-area:side;display:flex;flex-direction:column;gap:18px}
 .ticket{position:relative;background:var(--canary);color:var(--pencil);padding:20px 20px 18px;border-radius:2px;transform:rotate(-.6deg);box-shadow:0 10px 24px rgba(0,0,0,.35);
@@ -393,7 +393,7 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
 .m-record td{padding:6px 0;border-top:1px solid var(--line);text-align:right;font-family:var(--mono)}
 .m-record td:first-child,.m-record th:first-child{text-align:left;font-family:inherit}
 @media (max-width:900px){.menu-in{display:flex;flex-direction:column;align-items:stretch;gap:22px}.m-side{display:contents}.ticket{order:1}.board{order:2}.m-van{order:3}.m-record{order:4}.m-legal{order:5}.m-top{order:0}}
-@media (max-width:560px){.wo-top h2{font-size:22px}.m-top .m-mark{width:44px;height:44px}}
+@media (max-width:560px){.mwo-top h2{font-size:22px}.m-top .m-mark{width:44px;height:44px}}
 .md-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
 .md-head h2{margin:0;font-family:var(--display);font-weight:800;font-size:26px;line-height:1}
 .md-no{font:600 17px var(--mono);color:#8a2a1c}
@@ -690,25 +690,25 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
       <p>Residential service calls. Take the call, test the equipment, make the repair, and verify the system before you leave.</p></div>
     </header>
     <section class="board" aria-label="New service call">
-      <div class="wo">
-        <div class="wo-top"><h2>Service work order</h2><span class="wo-no">No. <b id="mWoNo">0001</b></span></div>
-        <div class="wo-field">
+      <div class="mwo">
+        <div class="mwo-top"><h2>Service work order</h2><span class="mwo-no">No. <b id="mWoNo">0001</b></span></div>
+        <div class="mwo-field">
           <h3>Technician</h3>
           <div class="opts" role="radiogroup" aria-label="Technician mode" id="techOpts"></div>
         </div>
-        <div class="wo-field">
+        <div class="mwo-field">
           <h3>Call type</h3>
           <div class="opts" role="radiogroup" aria-label="Scenario difficulty" id="diffOpts"></div>
         </div>
-        <div class="wo-field">
+        <div class="mwo-field">
           <h3>Season</h3>
           <div class="opts" role="radiogroup" aria-label="Season" id="seasonOpts"></div>
         </div>
-        <div class="wo-field" id="scSec">
+        <div class="mwo-field" id="scSec">
           <h3><label for="scSel">Tutorial level</label></h3>
           <div class="m-row"><select id="scSel"></select></div>
         </div>
-        <div class="wo-field wo-notes">
+        <div class="mwo-field mwo-notes">
           <h3>Notes</h3>
           <p class="m-detail" id="mDetail"></p>
         </div>
