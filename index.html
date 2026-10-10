@@ -387,6 +387,10 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
 .ticket .ghost:hover{border-color:var(--pencil)}
 .ticket .linkbtn{color:var(--pencil);border-color:#a8954a}
 .m-van{width:100%;height:auto;display:block}
+.m-acct{font-size:13.5px;color:var(--muted);margin:0 0 10px;display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center}
+.m-acct b{color:var(--ink)}
+.m-acct .linkbtn{font-size:12.5px}
+.m-acct .acct-warn{flex-basis:100%;color:var(--accent)}
 .m-record h2{margin:0 0 6px;font-family:var(--display);font-weight:700;font-size:19px;color:var(--ink)}
 .m-record table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
 .m-record th{font-weight:500;color:var(--muted);text-align:right;padding:4px 0;font-size:12.5px}
@@ -434,6 +438,16 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
 .lb-form input{flex:1 1 160px;min-width:0;background:#0f1418;border:1px solid var(--line);border-radius:6px;padding:9px 10px;color:var(--ink);font:inherit}
 .lb-form input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .lb-err{color:var(--high);font-size:13px;margin:8px 0 0}
+.acct-tabs{display:flex;gap:4px;margin:4px 0 14px;border-bottom:1px solid var(--line)}
+.acct-tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:8px 12px;margin-bottom:-1px;color:var(--muted);font-weight:600}
+.acct-tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.acct-form{display:flex;flex-direction:column;gap:10px}
+.acct-form label{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600;color:#c9d1d9}
+.acct-form small{font-weight:400;color:var(--muted)}
+.acct-form input{background:#0f1418;border:1px solid var(--line);border-radius:6px;padding:10px;color:var(--ink);font:inherit;font-weight:400}
+.acct-form input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.acct-form input[readonly]{opacity:.7}
+.acct-form label:focus-within{outline:none}
 .lb-ok{color:var(--ok);font-weight:600}
 #nameForm{margin-bottom:4px}
 .md-next .linkbtn{padding:2px 8px;font-size:12px}
@@ -620,15 +634,17 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
 <!-- reference -->
 <div class="scrim" id="nameScrim" hidden>
   <div class="modal sm" role="dialog" aria-modal="true" aria-labelledby="nameTitle">
-    <h2 id="nameTitle">Daily challenge</h2>
-    <p class="sub" id="nameSub">To play the Daily Challenge, enter your name. It's what other techs will see on the leaderboard, and your score posts automatically when you close out the call.</p>
-    <form class="lb-form" id="nameForm">
-      <input id="nmName" maxlength="24" placeholder="Name (e.g. Mike R.)" autocomplete="nickname" required>
-      <input id="nmShop" maxlength="40" placeholder="Shop or city (optional)">
+    <h2 id="nameTitle">Log in</h2>
+    <p class="sub" id="nameSub"></p>
+    <div class="acct-tabs" id="acctTabs"><button type="button" data-am="login">Log in</button><button type="button" data-am="create">Create account</button></div>
+    <form class="acct-form" id="nameForm" method="post" action="#" autocomplete="on">
+      <label id="nmNameL">Name<input id="nmName" name="username" maxlength="24" autocomplete="username" required></label>
+      <label id="nmPassL">Password<input id="nmPass" name="password" type="password" maxlength="72" minlength="6" autocomplete="current-password" required></label>
+      <label id="nmShopL"><span>Shop or city <small>(optional)</small></span><input id="nmShop" name="shop" maxlength="40" autocomplete="organization"></label>
     </form>
     <p class="lb-err" id="nmErr" hidden></p>
-    <p class="lb-me">2–24 letters or numbers. Keep it clean; names that aren't get removed.</p>
-    <div class="mact"><button class="ghost" id="nmCancel" type="button">Cancel</button><button class="ghost" id="nmOffline" type="button" hidden>Play without posting</button><button class="big" id="nmGo" type="submit" form="nameForm">Save name and start</button></div>
+    <p class="lb-me" id="nmHint"></p>
+    <div class="mact"><button class="ghost" id="nmCancel" type="button">Cancel</button><button class="big" id="nmGo" type="submit" form="nameForm">Log in</button></div>
   </div>
 </div>
 <div class="scrim" id="lbScrim" hidden>
@@ -760,7 +776,7 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
           <path d="M5 14 H45 M5 21 H45 M5 28 H45 M5 35 H45 M5 42 H45" stroke="#6d757c" stroke-width="2.5"/>
           <ellipse cx="25" cy="4" rx="20" ry="4" fill="#2a2e33"/></g>
       </svg>
-      <div class="m-record"><h2>Your record</h2><table id="mCareer"></table></div>
+      <div class="m-record"><h2>Your record</h2><div class="m-acct" id="mAcct"></div><table id="mCareer"></table></div>
     </aside>
     <p class="m-legal">© 2026 HVAC to the Future. <a href="https://hvactechsimulator.com">hvactechsimulator.com</a>. All rights reserved.</p>
   </div>
@@ -1403,6 +1419,9 @@ function load(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;
 function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
 const blankCareer=()=>({tutorial:{calls:0,total:0,first:0},easy:{calls:0,total:0,first:0},hard:{calls:0,total:0,first:0}});
 let career=load("scs-career2",blankCareer());
+let acct=load("scs-acct",null),amMode="login",amThen=null,acctMsg="";
+/* one-time move: daily history from before accounts belongs to the name already saved in this browser */
+(()=>{const pl=load("scs-player",null),old=load("scs-daily",null);if(pl&&old&&!load("scs-daily-"+pl.id,null)){save("scs-daily-"+pl.id,old);try{localStorage.removeItem("scs-daily");}catch(e){}}})();
 let prefs=Object.assign({tech:"app",diff:"tutorial",season:"summer",scen:"random",sound:true,tips:true,auto:true},load("scs-prefs",{}));
 const appMode=()=>prefs.tech==="app"&&!(s&&s.daily);
 const seasonOk=sc=>prefs.season==="all"||sc.season===prefs.season;
@@ -4284,6 +4303,7 @@ function endCall(){
   const first=allFixed&&!wrong.length&&verified;
   const cr=career[sc.diff];if(cr){cr.calls++;cr.total+=total;if(first)cr.first++;save("scs-career2",career);}
   if(s.daily)return dailyDebrief({init,now,induced,c,vreq,vdone,diag,wrong,allFixed,verified});
+  acctRecord(sc.diff,total,allFixed,first,diag);
   track("call_end",{mode:sc.diff,scen:sc.id,sys:s.sysId,score:total,fixed:allFixed,diag});
   if(tut){const d=load("scs-tutdone",[]);if(allFixed&&!d.includes(sc.id)){d.push(sc.id);save("scs-tutdone",d);}}
   const vcls=allFixed?(verified?"v-good":"v-mid"):"v-bad";
@@ -4331,7 +4351,7 @@ function dailyDebrief(o){
   const st=dailyStore();
   st.res[s.daily.no]={no:s.daily.no,done:true,score,cats,diag,par:sc.par,wrong:wrong.length,sys:s.sysId,fixed:allFixed,verified,
     log:{v:1,clock:s.clock,steps:s.log.slice(0,300).map(e=>[e.t,e.title]),repairs:s.repairs.map(r=>r.id)}};
-  save(DKEY,st);
+  save(dkey(),st);
   track("call_end",{mode:"daily",scen:"d"+s.daily.no,sys:s.sysId,score,fixed:allFixed,diag});
   const nm=["Fix","Proof","Verify","Time","Safety"],cl=v=>v>=1?"full":v>0?"part":"zero";
   const vcls=allFixed?(verified?"v-good":"v-mid"):"v-bad",vtxt=allFixed?(verified?"System verified":"Fixed, not verified"):"Callback";
@@ -4619,7 +4639,9 @@ function renderMenu(){
   if(!pool.some(x=>x.id===prefs.scen))prefs.scen="random";
   $("#scSel").value=prefs.scen;
   menuDetail();
-  $("#mCareer").innerHTML='<tr><th></th><th>Calls</th><th>Avg score</th></tr>'+["tutorial","easy","hard"].map(k=>{const c=career[k];return'<tr><td>'+k[0].toUpperCase()+k.slice(1)+'</td><td>'+c.calls+'</td><td>'+(c.calls?Math.round(c.total/c.calls):"–")+'</td></tr>';}).join("");
+  const ac=lbPlayer()&&acct?acct.career||{}:null,cv=k=>ac?Object.assign({calls:0,total:0},ac[k]):career[k];
+  $("#mCareer").innerHTML='<tr><th></th><th>Calls</th><th>Avg score</th></tr>'+["tutorial","easy","hard"].map(k=>{const c=cv(k);return'<tr><td>'+k[0].toUpperCase()+k.slice(1)+'</td><td>'+c.calls+'</td><td>'+(c.calls?Math.round(c.total/c.calls):"–")+'</td></tr>';}).join("");
+  renderAcct();
   $("#mWoNo").textContent=String(career.tutorial.calls+career.easy.calls+career.hard.calls+1).padStart(4,"0");
   $("#resumeBtn").hidden=!(s&&!s.over);
   renderDaily();
@@ -4664,13 +4686,14 @@ function buildDaily(no){
   sc.par=Math.round(sc.par*.8);
   return sc;
 }
-const DKEY="scs-daily";
-const dailyStore=()=>Object.assign({res:{},started:{}},load(DKEY,{}));
+/* daily results are kept per account (and once for guests) */
+const dkey=()=>{const pl=load("scs-player",null);return pl?"scs-daily-"+pl.id:"scs-daily";};
+const dailyStore=()=>Object.assign({res:{},started:{}},load(dkey(),{}));
 function dailyStreak(st){const today=dailyInfo().no;let n=st.res[today]?today:today-1,k=0;while(st.res[n]&&st.res[n].done&&st.res[n].fixed){k++;n--;}return k;}
 function dailyMaxStreak(st){const ks=Object.keys(st.res).filter(k=>st.res[k].fixed).map(Number).sort((a,b)=>a-b);let best=0,run=0,prev=null;ks.forEach(k=>{run=prev===k-1?run+1:1;best=Math.max(best,run);prev=k;});return best;}
 function startDaily(){
   const d=dailyInfo(),st=dailyStore();if(st.started[d.no])return;
-  st.started[d.no]=1;save(DKEY,st);
+  st.started[d.no]=1;save(dkey(),st);
   const sc=buildDaily(d.no);
   withSeed(hash32("hvacsim-call-"+d.no),()=>startCall(sc));
   woNo=30000+d.no;s.daily={no:d.no,date:d.date};renderAll();
@@ -4699,19 +4722,25 @@ async function sbRpc(fn,args){
   return j;
 }
 const lbPlayer=()=>load("scs-player",null);
+/* a player's name lives in one browser; a device link (#claim=<token>) signs the same player in somewhere else */
+var claimMsg="";
+const claimUrl=pl=>(STATS_ON?location.origin:"https://hvactechsimulator.com")+"/#claim="+pl.token;
+async function claimFromHash(){
+  const m=/^#claim=([0-9a-f]{32,})$/i.exec(location.hash);if(!m)return;
+  try{history.replaceState(null,"",location.pathname+location.search);}catch(e){}
+  try{const rows=await sbRpc("player_by_token",{p_token:m[1]}),r=rows&&rows[0];
+    if(!r)claimMsg="That device link didn't match a player. Copy a fresh one from the device you play on.";
+    else{save("scs-player",{id:r.id,name:r.name,shop:r.shop||"",token:m[1]});claimMsg="";acctMsg="Logged in as "+r.name+" on this device.";await syncAcct();}}
+  catch(e){claimMsg="Couldn't check that device link right now. Open it again in a minute.";}
+  if(claimMsg)acctMsg=claimMsg;renderMenu();
+}
 function newToken(){const a=new Uint8Array(24);crypto.getRandomValues(a);return Array.from(a,b=>b.toString(16).padStart(2,"0")).join("");}
 const NAME_RE=/^[A-Za-z0-9][A-Za-z0-9 ._'-]{1,23}$/;
-async function lbRegister(name,shop){
-  name=name.trim();shop=(shop||"").trim();
-  if(!NAME_RE.test(name))throw new Error("Use 2–24 letters, numbers, spaces, or . _ ' -");
-  const token=newToken(),id=await sbRpc("register_player",{p_name:name,p_shop:shop||null,p_token:token});
-  const pl={id,name,shop,token};save("scs-player",pl);return pl;
-}
 async function lbSubmit(no){
   const st=dailyStore(),r=st.res[no],pl=lbPlayer();if(!r||!pl)return;
   if(r.posted)return;
   await sbRpc("submit_daily",{p_player:pl.id,p_token:pl.token,p_day:no,p_score:r.score,p_diag:r.diag,p_par:r.par,p_cats:r.cats,p_fixed:!!r.fixed,p_wrong:r.wrong||0,p_sys:r.sys,p_log:r.log||null}).catch(e=>{if(!/Already posted/.test(e.message))throw e;});
-  const st2=dailyStore();st2.res[no].posted=true;save(DKEY,st2);
+  const st2=dailyStore();st2.res[no].posted=true;save(dkey(),st2);
 }
 function renderPost(no){
   const el=$("#lbPost");if(!el)return;
@@ -4723,30 +4752,84 @@ function renderPost(no){
   if(pl){el.innerHTML='<h4>Leaderboard</h4><p>Posting your score as <b>'+esc(pl.name)+'</b>…</p>';
     lbSubmit(no).then(()=>renderPost(no)).catch(e=>{el.innerHTML='<h4>Leaderboard</h4><p class="lb-err">'+esc(e.message)+'</p><div class="lb-form"><button class="ghost" type="button" id="lbRetry">Try again</button></div>';$("#lbRetry").onclick=()=>renderPost(no);});
     return;}
-  el.innerHTML='<h4>Post your score to the leaderboard</h4><p>You played without a leaderboard name. Add one to post this score.</p>'+
-    '<form class="lb-form" id="lbForm"><input id="lbName" maxlength="24" placeholder="Name (e.g. Mike R.)" autocomplete="nickname" required><input id="lbShop" maxlength="40" placeholder="Shop or city (optional)"><button class="big" type="submit">Post score</button></form><p class="lb-err" id="lbErr" hidden></p>';
-  $("#lbForm").onsubmit=e=>{e.preventDefault();const b=e.target.querySelector("button");b.disabled=true;$("#lbErr").hidden=true;
-    lbRegister($("#lbName").value,$("#lbShop").value).then(()=>lbSubmit(no)).then(()=>renderPost(no)).catch(err=>{b.disabled=false;$("#lbErr").textContent=err.message;$("#lbErr").hidden=false;});};
+  el.innerHTML='<h4>Post your score to the leaderboard</h4><p>You were logged out during the call. Log in to post this score.</p><div class="lb-form"><button class="big" type="button" id="lbLoginPost">Log in and post</button></div>';
+  $("#lbLoginPost").onclick=()=>openAcct("login",()=>renderPost(no));
 }
-/* the daily needs a leaderboard name first */
-let nameThen=null;
-function askName(then,change){
-  nameThen=then;const pl=lbPlayer();
-  $("#nameTitle").textContent=change?"Change your name":"Daily challenge";
-  $("#nameSub").textContent=change?"Pick a new leaderboard name. Scores you already posted stay under your old name.":"To play the Daily Challenge, enter your name. It's what other techs will see on the leaderboard, and your score posts automatically when you close out the call.";
-  $("#nmGo").textContent=change?"Save name":"Save name and start";
-  $("#nmName").value=change&&pl?pl.name:"";$("#nmShop").value=pl&&pl.shop||"";
-  $("#nmErr").hidden=true;$("#nmOffline").hidden=true;$("#nmGo").disabled=false;
-  $("#nameScrim").hidden=false;setTimeout(()=>$("#nmName").focus(),30);
+/* ================= accounts: name + password, stays logged in on each device ================= */
+function setPlayer(pl){save("scs-player",pl);}
+function clearPlayer(){try{localStorage.removeItem("scs-player");localStorage.removeItem("scs-acct");}catch(e){}acct=null;}
+async function syncAcct(){
+  const pl=lbPlayer();if(!pl)return;
+  let r;try{r=await sbRpc("my_stats",{p_token:pl.token});}
+  catch(e){if(/logged out/i.test(e.message)){clearPlayer();acctMsg="You were logged out. Log in again.";if(!$("#menu").hidden)renderMenu();}return;}
+  acct=r;save("scs-acct",r);
+  if(r.name!==pl.name||(r.shop||"")!==(pl.shop||""))save("scs-player",Object.assign(pl,{name:r.name,shop:r.shop||""}));
+  const st=dailyStore();
+  (r.daily||[]).forEach(d=>{const cur=st.res[d.no];if(!cur||!cur.done)st.res[d.no]={no:d.no,done:true,posted:true,score:d.score,cats:d.cats,diag:d.diag,par:d.par,wrong:d.wrong,sys:d.sys,fixed:d.fixed};else cur.posted=true;});
+  (r.started||[]).forEach(n=>{st.started[n]=1;});
+  save(dkey(),st);
+  if(!$("#menu").hidden)renderMenu();
 }
-$("#nameForm").onsubmit=e=>{e.preventDefault();const b=$("#nmGo");b.disabled=true;$("#nmErr").hidden=true;
-  const pl=lbPlayer(),nm=$("#nmName").value.trim(),sh=$("#nmShop").value.trim();
-  if(pl&&pl.name.toLowerCase()===nm.toLowerCase()&&(pl.shop||"")===sh){$("#nameScrim").hidden=true;const f=nameThen;nameThen=null;if(f)f();return;}
-  lbRegister(nm,sh).then(()=>{$("#nameScrim").hidden=true;renderDaily();const f=nameThen;nameThen=null;if(f)f();})
-    .catch(err=>{b.disabled=false;$("#nmErr").textContent=err.message;$("#nmErr").hidden=false;
-      if(!/taken|letters/.test(err.message)&&nameThen)$("#nmOffline").hidden=false;});};
-$("#nmCancel").onclick=()=>{$("#nameScrim").hidden=true;nameThen=null;};
-$("#nmOffline").onclick=()=>{$("#nameScrim").hidden=true;const f=nameThen;nameThen=null;if(f)f();};
+function acctRecord(diff,score,fixed,first,diag){
+  const pl=lbPlayer();if(!pl||!s)return;
+  if(acct){acct.career=acct.career||{};const c=acct.career[diff]=Object.assign({calls:0,total:0,first:0},acct.career[diff]);c.calls++;c.total+=score;if(first)c.first++;save("scs-acct",acct);}
+  sbRpc("record_call",{p_token:pl.token,p_diff:diff,p_score:Math.round(score),p_fixed:!!fixed,p_first:!!first,p_sys:s.sysId,p_scen:s.sc.id,p_diag:Math.round(diag||0)}).catch(()=>{});
+}
+function renderAcct(){
+  const el=$("#mAcct");if(!el)return;const pl=lbPlayer();
+  let h;
+  if(pl)h='<span>Logged in as <b>'+esc(pl.name)+'</b>'+(pl.shop?', '+esc(pl.shop):'')+'.</span><button class="linkbtn" type="button" data-acct="rename">Change name</button><button class="linkbtn" type="button" data-acct="setpass">'+(acct&&acct.has_pass===false?'Set a password':'Change password')+'</button><button class="linkbtn" type="button" data-acct="logout">Log out</button>'+
+    (acct&&acct.has_pass===false?'<span class="acct-warn">Set a password so you can log in on your other devices.</span>':'');
+  else h='<span>Playing as a guest. Your record stays on this device.</span><button class="linkbtn" type="button" data-acct="login">Log in</button><button class="linkbtn" type="button" data-acct="create">Create account</button>';
+  if(acctMsg)h+='<span class="acct-warn">'+esc(acctMsg)+'</span>';
+  el.innerHTML=h;
+}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-acct]");if(!b)return;const m=b.dataset.acct;acctMsg="";
+  if(m==="logout"){const pl=lbPlayer();if(pl)sbRpc("logout",{p_token:pl.token}).catch(()=>{});clearPlayer();renderMenu();return;}
+  openAcct(m);});
+const AM={
+  login:{t:"Log in",sub:"Log in to play the daily challenge and keep your record on every device. You stay logged in on this device until you log out.",go:"Log in",pass:"current-password",shop:false},
+  create:{t:"Create account",sub:"Your name is what other techs see on the leaderboard. Your password lets you log in on your phone and computer.",go:"Create account",pass:"new-password",shop:true},
+  rename:{t:"Change name",sub:"Your scores move to the new name.",go:"Save",pass:null,shop:true},
+  setpass:{t:"Set a password",sub:"Use it to log in on your other devices.",go:"Save password",pass:"new-password",shop:false}
+};
+function openAcct(mode,then){
+  amMode=mode;if(then!==undefined)amThen=then;const m=AM[mode],pl=lbPlayer();
+  $("#nameTitle").textContent=m.t;$("#nameSub").textContent=m.sub;$("#nmGo").textContent=m.go;
+  $("#acctTabs").hidden=!(mode==="login"||mode==="create");
+  $$("#acctTabs [data-am]").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.am===mode)));
+  const nm=$("#nmName");nm.readOnly=mode==="setpass";nm.value=(mode==="rename"||mode==="setpass")&&pl?pl.name:mode===amMode&&nm.value&&!nm.readOnly?nm.value:"";
+  $("#nmPassL").hidden=!m.pass;const pw=$("#nmPass");pw.required=!!m.pass;pw.value="";pw.setAttribute("autocomplete",m.pass||"off");
+  $("#nmShopL").hidden=!m.shop;$("#nmShop").value=mode==="rename"&&pl?pl.shop||"":"";
+  $("#nmHint").textContent=mode==="create"?"Name: 2–24 letters or numbers. Keep it clean; names that aren't get removed. Password: at least 6 characters.":mode==="login"?"Forgot your password? Message the site owner to reset it.":"";
+  $("#nmErr").hidden=true;$("#nmGo").disabled=false;$("#nameScrim").hidden=false;
+  setTimeout(()=>(nm.readOnly?pw:nm).focus(),30);
+}
+$("#acctTabs").addEventListener("click",e=>{const b=e.target.closest("[data-am]");if(b)openAcct(b.dataset.am);});
+$("#nameForm").onsubmit=async e=>{e.preventDefault();const b=$("#nmGo");b.disabled=true;$("#nmErr").hidden=true;
+  const nm=$("#nmName").value.trim(),pw=$("#nmPass").value,sh=$("#nmShop").value.trim(),pl=lbPlayer();
+  try{
+    if((amMode==="login"||amMode==="create"||amMode==="rename")&&!NAME_RE.test(nm))throw new Error("Use 2–24 letters, numbers, spaces, or . _ ' -");
+    if(amMode==="login"){const r=await sbRpc("login",{p_name:nm,p_pass:pw});if(r.error)throw new Error(r.error);setPlayer({id:r.id,name:r.name,shop:r.shop||"",token:r.token});}
+    else if(amMode==="create"){const r=await sbRpc("create_account",{p_name:nm,p_shop:sh||null,p_pass:pw});setPlayer({id:r.id,name:r.name,shop:r.shop||"",token:r.token});acct={name:r.name,shop:r.shop,has_pass:true,career:{},daily:[],started:[]};save("scs-acct",acct);}
+    else if(amMode==="rename"){const r=await sbRpc("rename_player",{p_token:pl.token,p_name:nm,p_shop:sh||null});save("scs-player",Object.assign(pl,{name:r.name,shop:r.shop||""}));}
+    else if(amMode==="setpass"){await sbRpc("set_password",{p_token:pl.token,p_pass:pw});if(acct){acct.has_pass=true;save("scs-acct",acct);}}
+  }catch(err){b.disabled=false;$("#nmErr").textContent=/fetch|reachable|network/i.test(err.message)?"Can't reach the server. Check your connection and try again.":err.message;$("#nmErr").hidden=false;return;}
+  $("#nameScrim").hidden=true;acctMsg="";
+  await syncAcct();renderMenu();
+  const f=amThen;amThen=null;if(f)f();
+};
+$("#nmCancel").onclick=()=>{$("#nameScrim").hidden=true;amThen=null;};
+/* the daily needs an account; the attempt is claimed on the server so it can't be replayed on another device */
+async function startDailyChecked(btn){
+  const pl=lbPlayer();if(!pl){openAcct("login");return;}
+  const d=dailyInfo();if(btn)btn.disabled=true;
+  try{const fresh=await sbRpc("start_daily",{p_token:pl.token,p_day:d.no});
+    if(!fresh){const st=dailyStore();st.started[d.no]=1;save(dkey(),st);await syncAcct();renderDaily();return;}}
+  catch(e){if(/logged out/i.test(e.message)){clearPlayer();acctMsg="You were logged out. Log in again.";renderMenu();openAcct("login");return;}
+    if(btn)btn.disabled=false;const el=$("#mDaily .md-fine");if(el)el.textContent="Can't reach the leaderboard right now, so the daily can't start. Check your connection and try again.";return;}
+  startDaily();
+}
 /* anonymous play stats: only from the live site, never from previews or local copies */
 const STATS_ON=/(^|\.)hvactechsimulator\.(com|github\.io)$/.test(location.hostname);
 function statVid(){let v=load("scs-vid",null);if(!v){v=crypto.randomUUID?crypto.randomUUID():"10000000-1000-4000-8000-100000000000".replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));save("scs-vid",v);}return v;}
@@ -4784,22 +4867,30 @@ function renderDaily(){
   const vals=Object.values(st.res).filter(x=>x.done),avg=vals.length?Math.round(vals.reduce((a,x)=>a+x.score,0)/vals.length):"–",best=vals.length?Math.max(...vals.map(x=>x.score)):"–";
   let h='<div class="md-head"><h2>Daily challenge</h2><span class="md-no">#'+d.no+'</span><span class="md-date">'+esc(d.label)+'</span></div>'+
     '<p class="md-rules">Today\'s hardest call, the same for every tech. No tips, no coaching, often more than one fault. You get one try.</p>'+
-    '<dl class="md-stats"><div><dt>Streak</dt><dd>'+dailyStreak(st)+'</dd></div><div><dt>Best streak</dt><dd>'+dailyMaxStreak(st)+'</dd></div><div><dt>Best score</dt><dd>'+best+'</dd></div><div><dt>Average</dt><dd>'+avg+'</dd></div></dl>';
-  if(r&&r.done)h+='<div class="md-done"><div class="md-score"><b>'+r.score+'</b><span>/ 100 today</span></div><button class="big" id="dailyShare" type="button">Share result</button><button class="ghost" id="dailyLb" type="button">Leaderboard</button><span class="md-next">Next challenge in <b id="dNext">'+untilTomorrow()+'</b></span></div>';
+    (!lbPlayer()?'<div class="md-done"><button class="big" id="dailyLogin" type="button">Log in to play</button><button class="ghost" id="dailyCreate" type="button">Create account</button></div><p class="md-next md-fine">The daily challenge is for logged-in players, so every score on the leaderboard belongs to a real account. Practice calls are open to guests.</p>':'')+
+    (!lbPlayer()?'':'<dl class="md-stats"><div><dt>Streak</dt><dd>'+dailyStreak(st)+'</dd></div><div><dt>Best streak</dt><dd>'+dailyMaxStreak(st)+'</dd></div><div><dt>Best score</dt><dd>'+best+'</dd></div><div><dt>Average</dt><dd>'+avg+'</dd></div></dl>');
+  if(!lbPlayer()){}
+  else if(r&&r.done)h+='<div class="md-done"><div class="md-score"><b>'+r.score+'</b><span>/ 100 today</span></div><button class="big" id="dailyShare" type="button">Share result</button><button class="ghost" id="dailyLb" type="button">Leaderboard</button><span class="md-next">Next challenge in <b id="dNext">'+untilTomorrow()+'</b></span></div>';
   else if(started&&s&&s.daily&&s.daily.no===d.no&&!s.over)h+='<div class="md-done"><button class="big" id="dailyResume" type="button">Resume today\'s challenge</button><span class="md-next">Closing this page ends your attempt.</span></div>';
   else if(started)h+='<div class="md-done"><span class="md-miss">Attempt used: not finished.</span><button class="ghost" id="dailyLb" type="button">Leaderboard</button><span class="md-next">Next challenge in <b id="dNext">'+untilTomorrow()+'</b></span></div>';
   else h+='<div class="md-done"><button class="big" id="dailyBtn" type="button">Start today\'s call</button><button class="ghost" id="dailyLb" type="button">Leaderboard</button></div><p class="md-next md-fine">Leaving before you close out the call uses your attempt. Your score posts to the leaderboard when you finish.</p>';
   const pl=lbPlayer();
-  if(pl)h+='<p class="md-next" style="margin:10px 0 0">Playing as <b>'+esc(pl.name)+'</b>'+(pl.shop?', '+esc(pl.shop):'')+' <button class="linkbtn" id="dailyName" type="button">Change name</button></p>';
+  if(false)h+='<p class="md-next" style="margin:10px 0 0">Playing as <b>'+esc(pl.name)+'</b>'+(pl.shop?', '+esc(pl.shop):'')+' <button class="linkbtn" id="dailyName" type="button">Change name</button> <button class="linkbtn" id="dailyLink" type="button">Use on another device</button></p>';
+  if(claimMsg)h+='<p class="md-next" style="margin:8px 0 0"><b>'+esc(claimMsg)+'</b></p>';
   el.innerHTML=h;
-  const b=$("#dailyBtn");if(b)b.onclick=()=>{Snd.init();if(lbPlayer())startDaily();else askName(startDaily);};
+  const b=$("#dailyBtn");if(b)b.onclick=()=>{Snd.init();startDailyChecked(b);};
+  const dlg=$("#dailyLogin");if(dlg)dlg.onclick=()=>openAcct("login");
+  const dcr=$("#dailyCreate");if(dcr)dcr.onclick=()=>openAcct("create");
   const cn=$("#dailyName");if(cn)cn.onclick=()=>askName(null,true);
+  const dl=$("#dailyLink");if(dl)dl.onclick=()=>{const u=claimUrl(lbPlayer()),ok=()=>{claimMsg="Link copied. Open it on your other device, and keep it private: anyone with it can post as you.";renderDaily();};
+    (navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(ok).catch(()=>{window.prompt("Copy this link and open it on your other device:",u);});};
   const rs=$("#dailyResume");if(rs)rs.onclick=()=>{$("#menu").hidden=true;updateAmbient();};
   const sh=$("#dailyShare");if(sh)sh.onclick=()=>shareDaily(d.no,sh);
   const lb=$("#dailyLb");if(lb)lb.onclick=()=>openLeaderboard("today");
   if(r&&r.done&&!r.posted&&lbPlayer())lbSubmit(d.no).catch(()=>{});
 }
 setInterval(()=>{const n=$("#dNext");if(n&&!$("#menu").hidden)n.textContent=untilTomorrow();},30000);
+setTimeout(()=>{if(!/^#claim=/.test(location.hash))syncAcct();claimFromHash();},0);addEventListener("hashchange",claimFromHash);
 function startCall(sc){
   callNo=career.tutorial.calls+career.easy.calls+career.hard.calls+1;
   woNo++;s=newCall(sc);s.lifted={};s.cut={};s.everLifted=0;s.jumps=[];s.zOff=[false,false];wjFirst=null;play=null;tripping=false;lastMarks="";
