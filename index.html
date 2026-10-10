@@ -4245,6 +4245,7 @@ function endCall(){
   const first=allFixed&&!wrong.length&&verified;
   const cr=career[sc.diff];if(cr){cr.calls++;cr.total+=total;if(first)cr.first++;save("scs-career2",career);}
   if(s.daily)return dailyDebrief({init,now,induced,c,vreq,vdone,diag,wrong,allFixed,verified});
+  track("call_end",{mode:sc.diff,scen:sc.id,sys:s.sysId,score:total,fixed:allFixed,diag});
   if(tut){const d=load("scs-tutdone",[]);if(allFixed&&!d.includes(sc.id)){d.push(sc.id);save("scs-tutdone",d);}}
   const vcls=allFixed?(verified?"v-good":"v-mid"):"v-bad";
   const vtxt=allFixed?(verified?"System verified":"Fixed, not verified"):"Callback";
@@ -4271,7 +4272,7 @@ function endCall(){
   h+='<div class="mact"><button class="ghost" id="debReview" type="button">Review the site</button><button class="ghost" id="debMenu" type="button">Main menu</button><button class="big" id="debNext" type="button">Next call</button></div>';
   $("#deb").innerHTML=h;$("#debScrim").hidden=false;
   renderAll();
-  $("#debNext").onclick=()=>{$("#debScrim").hidden=true;prefs.scen="random";startCall(chooseScenario());};
+  $("#debNext").onclick=()=>{$("#debScrim").hidden=true;prefs.scen="random";startCall(chooseScenario());track("call_start",{mode:s.sc.diff,scen:s.sc.id,sys:s.sysId});};
   $("#debMenu").onclick=()=>{$("#debScrim").hidden=true;openMenu();};
   $("#debReview").onclick=()=>{$("#debScrim").hidden=true;};
 }
@@ -4292,6 +4293,7 @@ function dailyDebrief(o){
   st.res[s.daily.no]={no:s.daily.no,done:true,score,cats,diag,par:sc.par,wrong:wrong.length,sys:s.sysId,fixed:allFixed,verified,
     log:{v:1,clock:s.clock,steps:s.log.slice(0,300).map(e=>[e.t,e.title]),repairs:s.repairs.map(r=>r.id)}};
   save(DKEY,st);
+  track("call_end",{mode:"daily",scen:"d"+s.daily.no,sys:s.sysId,score,fixed:allFixed,diag});
   const nm=["Fix","Proof","Verify","Time","Safety"],cl=v=>v>=1?"full":v>0?"part":"zero";
   const vcls=allFixed?(verified?"v-good":"v-mid"):"v-bad",vtxt=allFixed?(verified?"System verified":"Fixed, not verified"):"Callback";
   const rating=score===100?"Perfect call.":score>=90?"Elite work.":score>=75?"Strong call.":score>=55?"Got there.":"Rough day.";
@@ -4632,6 +4634,7 @@ function startDaily(){
   const sc=buildDaily(d.no);
   withSeed(hash32("hvacsim-call-"+d.no),()=>startCall(sc));
   woNo=30000+d.no;s.daily={no:d.no,date:d.date};renderAll();
+  track("call_start",{mode:"daily",scen:sc.id.replace(/^daily-/,"d"),sys:s.sysId});
 }
 function untilTomorrow(){const n=new Date(),t=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1);const m=Math.max(0,Math.round((t-n)/6e4));return Math.floor(m/60)+"h "+(m%60)+"m";}
 function dailyShare(r){
@@ -4704,6 +4707,15 @@ $("#nameForm").onsubmit=e=>{e.preventDefault();const b=$("#nmGo");b.disabled=tru
       if(!/taken|letters/.test(err.message)&&nameThen)$("#nmOffline").hidden=false;});};
 $("#nmCancel").onclick=()=>{$("#nameScrim").hidden=true;nameThen=null;};
 $("#nmOffline").onclick=()=>{$("#nameScrim").hidden=true;const f=nameThen;nameThen=null;if(f)f();};
+/* anonymous play stats: only from the live site, never from previews or local copies */
+const STATS_ON=/(^|\.)hvactechsimulator\.(com|github\.io)$/.test(location.hostname);
+function statVid(){let v=load("scs-vid",null);if(!v){v=crypto.randomUUID?crypto.randomUUID():"10000000-1000-4000-8000-100000000000".replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16));save("scs-vid",v);}return v;}
+function track(kind,o){
+  if(!STATS_ON)return;o=o||{};
+  try{fetch(SB_URL+"/rest/v1/rpc/log_event",{method:"POST",keepalive:true,headers:{"apikey":SB_KEY,"Content-Type":"application/json"},
+    body:JSON.stringify({p_vid:statVid(),p_kind:kind,p_mode:o.mode||null,p_scen:o.scen||null,p_sys:o.sys||null,p_score:o.score==null?null:Math.round(o.score),p_fixed:o.fixed==null?null:!!o.fixed,p_diag:o.diag==null?null:Math.round(o.diag),
+      p_device:matchMedia("(pointer:coarse)").matches?(innerWidth<760?"phone":"tablet"):"computer"})}).catch(()=>{});}catch(e){}
+}
 let lbTab="today";
 function openLeaderboard(tab){lbTab=tab||lbTab;$("#lbScrim").hidden=false;renderLeaderboard();}
 function renderLeaderboard(){
@@ -4822,7 +4834,7 @@ document.addEventListener("keydown",e=>{
   const n=parseInt(e.key,10),tl=toolsNow();if(n>=1&&n<=tl.length){Snd.init();selectTool(tl[n-1]);}
 });
 $("#scSel").addEventListener("change",e=>{prefs.scen=e.target.value;savePrefs();});
-$("#startBtn").onclick=()=>{Snd.init();startCall(chooseScenario());};
+$("#startBtn").onclick=()=>{Snd.init();startCall(chooseScenario());track("call_start",{mode:s.sc.diff,scen:s.sc.id,sys:s.sysId});};
 $("#resumeBtn").onclick=()=>{$("#menu").hidden=true;renderAll();};
 $("#settingsBtn").onclick=()=>openSettings();
 $("#menuBtn").onclick=()=>{if(s&&!s.over)$("#leaveScrim").hidden=false;else openMenu();};
@@ -4833,7 +4845,7 @@ $("#repGo").onclick=doRepair;
 $("#repCancel").onclick=()=>{$("#repScrim").hidden=true;};
 $("#repairBtn").onclick=()=>{if(s&&!s.over)openRepair();};
 $("#waitBtn").onclick=waitRun;
-$("#closeBtn").onclick=()=>{if(!s)return;if(s.over){startCall(chooseScenario());}else openClose();};
+$("#closeBtn").onclick=()=>{if(!s)return;if(s.over){startCall(chooseScenario());track("call_start",{mode:s.sc.diff,scen:s.sc.id,sys:s.sysId});}else openClose();};
 $("#closeCancel").onclick=()=>{$("#closeScrim").hidden=true;};
 $("#closeGo").onclick=endCall;
 $("#refBtn").onclick=openRef;
@@ -4859,6 +4871,7 @@ setTimeout(()=>{setNeedle($("#mgLow"),118,300);setNeedle($("#mgHigh"),335,800);}
 startCall(SCN.find(x=>x.diff===prefs.diff)||SCN[0]);s.over=true;
 placeUI();
 openMenu();
+track("visit");
 requestAnimationFrame(frame);})();
 </script>
 
