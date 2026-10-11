@@ -448,6 +448,12 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
 .acct-form input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .acct-form input[readonly]{opacity:.7}
 .acct-form label:focus-within{outline:none}
+.g-btn{display:block;width:100%;background:#fff;color:#1f1f1f;border:1px solid #c7c7c7;border-radius:6px;padding:12px;font-weight:600;font-size:15px;margin:6px 0 0}
+.g-btn:hover{background:#f2f2f2}
+.g-or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12.5px;margin:14px 0 4px}
+.g-or::before,.g-or::after{content:"";flex:1;border-top:1px solid var(--line)}
+.rec-code{font:600 clamp(24px,7vw,34px) var(--mono);letter-spacing:.06em;text-align:center;padding:16px 8px;margin:6px 0 4px;background:#0f1418;border:1px dashed var(--accent);border-radius:8px;user-select:all}
+.nm-forgot{background:none;border:0;padding:0;color:var(--accent);font:inherit;text-decoration:underline;text-underline-offset:3px}
 .lb-ok{color:var(--ok);font-weight:600}
 #nameForm{margin-bottom:4px}
 .md-next .linkbtn{padding:2px 8px;font-size:12px}
@@ -632,14 +638,25 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
 </div>
 
 <!-- reference -->
+<div class="scrim" id="recScrim" hidden>
+  <div class="modal sm" role="dialog" aria-modal="true" aria-labelledby="recTitle">
+    <h2 id="recTitle">Save your recovery code</h2>
+    <p class="sub">If you ever forget your password, this code lets you set a new one. It's only shown once, so write it down or save it in your password manager.</p>
+    <div class="rec-code" id="recCode"></div>
+    <p class="lb-me">Each code works once. After you use it, you'll get a new one.</p>
+    <div class="mact"><button class="ghost" id="recCopy" type="button">Copy code</button><button class="big" id="recDone" type="button">I saved it</button></div>
+  </div>
+</div>
 <div class="scrim" id="nameScrim" hidden>
   <div class="modal sm" role="dialog" aria-modal="true" aria-labelledby="nameTitle">
     <h2 id="nameTitle">Log in</h2>
     <p class="sub" id="nameSub"></p>
+    <div class="g-block" id="gBlock" hidden><button type="button" class="g-btn" id="gBtn">Continue with Google</button><p class="g-or"><span>or use a name and password</span></p></div>
     <div class="acct-tabs" id="acctTabs"><button type="button" data-am="login">Log in</button><button type="button" data-am="create">Create account</button></div>
     <form class="acct-form" id="nameForm" method="post" action="#" autocomplete="on">
       <label id="nmNameL">Name<input id="nmName" name="username" maxlength="24" autocomplete="username" required></label>
-      <label id="nmPassL">Password<input id="nmPass" name="password" type="password" maxlength="72" minlength="6" autocomplete="current-password" required></label>
+      <label id="nmCodeL" hidden>Recovery code<input id="nmCode" name="recovery" maxlength="20" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX"></label>
+      <label id="nmPassL"><span id="nmPassT">Password</span><input id="nmPass" name="password" type="password" maxlength="72" minlength="6" autocomplete="current-password" required></label>
       <label id="nmShopL"><span>Shop or city <small>(optional)</small></span><input id="nmShop" name="shop" maxlength="40" autocomplete="organization"></label>
     </form>
     <p class="lb-err" id="nmErr" hidden></p>
@@ -778,7 +795,7 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
       </svg>
       <div class="m-record"><h2>Your record</h2><div class="m-acct" id="mAcct"></div><table id="mCareer"></table></div>
     </aside>
-    <p class="m-legal">© 2026 HVAC to the Future. <a href="https://hvactechsimulator.com">hvactechsimulator.com</a>. All rights reserved.</p>
+    <p class="m-legal">© 2026 HVAC to the Future. <a href="https://hvactechsimulator.com">hvactechsimulator.com</a>. All rights reserved. <a href="/privacy.html">Privacy</a></p>
   </div>
 </div>
 
@@ -4715,8 +4732,9 @@ function shareDaily(no,btn){
 }
 /* ================= leaderboard (Supabase) ================= */
 const SB_URL="https://rodtuscaemjmkbigtqlp.supabase.co",SB_KEY="sb_publishable_IC30jaObOVvtdajxcWeXgA_gShxofqi";
-async function sbRpc(fn,args){
-  const r=await fetch(SB_URL+"/rest/v1/rpc/"+fn,{method:"POST",headers:{"apikey":SB_KEY,"Content-Type":"application/json"},body:JSON.stringify(args||{})});
+async function sbRpc(fn,args,bearer){
+  const hd={"apikey":SB_KEY,"Content-Type":"application/json"};if(bearer)hd.Authorization="Bearer "+bearer;
+  const r=await fetch(SB_URL+"/rest/v1/rpc/"+fn,{method:"POST",headers:hd,body:JSON.stringify(args||{})});
   const t=await r.text();let j=null;try{j=t?JSON.parse(t):null;}catch(e){}
   if(!r.ok)throw new Error((j&&(j.message||j.hint))||"The leaderboard isn't reachable right now.");
   return j;
@@ -4775,33 +4793,66 @@ function acctRecord(diff,score,fixed,first,diag){
   if(acct){acct.career=acct.career||{};const c=acct.career[diff]=Object.assign({calls:0,total:0,first:0},acct.career[diff]);c.calls++;c.total+=score;if(first)c.first++;save("scs-acct",acct);}
   sbRpc("record_call",{p_token:pl.token,p_diff:diff,p_score:Math.round(score),p_fixed:!!fixed,p_first:!!first,p_sys:s.sysId,p_scen:s.sc.id,p_diag:Math.round(diag||0)}).catch(()=>{});
 }
+/* Google sign-in (live site only: Google sends players back to hvactechsimulator.com) */
+const G_ON=/(^|\.)hvactechsimulator\.(com|github\.io)$/.test(location.hostname)||!!window.__gtest;let gJwt=null;
+function googleStart(intent){try{sessionStorage.setItem("scs-g-intent",intent);}catch(e){}
+  location.href=SB_URL+"/auth/v1/authorize?provider=google&redirect_to="+encodeURIComponent(location.origin+location.pathname);}
+async function googleReturn(){
+  const h=location.hash;if(!/access_token=|error_description=/.test(h))return false;
+  const q=new URLSearchParams(h.slice(1));try{history.replaceState(null,"",location.pathname+location.search);}catch(e){}
+  let intent="login";try{intent=sessionStorage.getItem("scs-g-intent")||"login";sessionStorage.removeItem("scs-g-intent");}catch(e){}
+  if(q.get("error_description")){acctMsg="Google sign-in didn't finish: "+q.get("error_description");renderMenu();return true;}
+  gJwt=q.get("access_token");
+  try{
+    if(intent==="link"&&lbPlayer()){await sbRpc("google_link",{p_token:lbPlayer().token},gJwt);gJwt=null;acctMsg="Google connected. Next time, use Continue with Google.";await syncAcct();renderMenu();return true;}
+    const r=await sbRpc("google_session",{},gJwt);
+    if(r&&r.needs_name){renderMenu();openAcct("gname");return true;}
+    setPlayer({id:r.id,name:r.name,shop:r.shop||"",token:r.token});gJwt=null;acctMsg="";await syncAcct();renderMenu();
+  }catch(e){acctMsg=/fetch|network/i.test(e.message)?"Can't reach the server. Try Continue with Google again.":e.message;renderMenu();}
+  return true;
+}
+$("#gBtn").onclick=()=>googleStart("login");
+let recThen=null;
+function showRecovery(code,then){recThen=then||null;$("#recCode").textContent=code;$("#recCopy").textContent="Copy code";$("#recScrim").hidden=false;setTimeout(()=>$("#recCopy").focus(),30);}
+$("#recCopy").onclick=()=>{const c=$("#recCode").textContent,b=$("#recCopy");(navigator.clipboard?navigator.clipboard.writeText(c):Promise.reject()).then(()=>{b.textContent="Copied";}).catch(()=>{const r=document.createRange();r.selectNodeContents($("#recCode"));const sl=getSelection();sl.removeAllRanges();sl.addRange(r);});};
+$("#recDone").onclick=()=>{$("#recScrim").hidden=true;const f=recThen;recThen=null;renderMenu();if(f)f();};
+async function newRecovery(){const pl=lbPlayer();if(!pl)return;
+  try{const r=await sbRpc("new_recovery_code",{p_token:pl.token});if(acct){acct.has_recovery=true;save("scs-acct",acct);}showRecovery(r.recovery);}
+  catch(e){acctMsg=/logged out/i.test(e.message)?"You were logged out. Log in again.":"Can't reach the server right now. Try again in a minute.";if(/logged out/i.test(e.message))clearPlayer();renderMenu();}}
 function renderAcct(){
   const el=$("#mAcct");if(!el)return;const pl=lbPlayer();
   let h;
-  if(pl)h='<span>Logged in as <b>'+esc(pl.name)+'</b>'+(pl.shop?', '+esc(pl.shop):'')+'.</span><button class="linkbtn" type="button" data-acct="rename">Change name</button><button class="linkbtn" type="button" data-acct="setpass">'+(acct&&acct.has_pass===false?'Set a password':'Change password')+'</button><button class="linkbtn" type="button" data-acct="logout">Log out</button>'+
-    (acct&&acct.has_pass===false?'<span class="acct-warn">Set a password so you can log in on your other devices.</span>':'');
+  if(pl)h='<span>Logged in as <b>'+esc(pl.name)+'</b>'+(pl.shop?', '+esc(pl.shop):'')+'.</span><button class="linkbtn" type="button" data-acct="rename">Change name</button><button class="linkbtn" type="button" data-acct="setpass">'+(acct&&acct.has_pass===false?(acct.has_google?'Add a password':'Set a password'):'Change password')+'</button><button class="linkbtn" type="button" data-acct="recovery"'+(acct&&acct.has_pass===false?' hidden':'')+'>New recovery code</button>'+(G_ON&&acct&&acct.has_google===false?'<button class="linkbtn" type="button" data-acct="glink">Connect Google</button>':'')+'<button class="linkbtn" type="button" data-acct="logout">Log out</button>'+
+    (acct&&acct.has_pass===false&&!acct.has_google?'<span class="acct-warn">Set a password or connect Google so you can log in on your other devices.</span>':acct&&acct.has_pass&&acct.has_recovery===false?'<span class="acct-warn">Get a recovery code so you can reset your password if you forget it.</span>':'');
   else h='<span>Playing as a guest. Your record stays on this device.</span><button class="linkbtn" type="button" data-acct="login">Log in</button><button class="linkbtn" type="button" data-acct="create">Create account</button>';
   if(acctMsg)h+='<span class="acct-warn">'+esc(acctMsg)+'</span>';
   el.innerHTML=h;
 }
 document.addEventListener("click",e=>{const b=e.target.closest("[data-acct]");if(!b)return;const m=b.dataset.acct;acctMsg="";
+  if(m==="recovery"){newRecovery();return;}
+  if(m==="glink"){googleStart("link");return;}
   if(m==="logout"){const pl=lbPlayer();if(pl)sbRpc("logout",{p_token:pl.token}).catch(()=>{});clearPlayer();renderMenu();return;}
   openAcct(m);});
 const AM={
   login:{t:"Log in",sub:"Log in to play the daily challenge and keep your record on every device. You stay logged in on this device until you log out.",go:"Log in",pass:"current-password",shop:false},
   create:{t:"Create account",sub:"Your name is what other techs see on the leaderboard. Your password lets you log in on your phone and computer.",go:"Create account",pass:"new-password",shop:true},
   rename:{t:"Change name",sub:"Your scores move to the new name.",go:"Save",pass:null,shop:true},
-  setpass:{t:"Set a password",sub:"Use it to log in on your other devices.",go:"Save password",pass:"new-password",shop:false}
+  setpass:{t:"Set a password",sub:"Use it to log in on your other devices.",go:"Save password",pass:"new-password",shop:false},
+  gname:{t:"Pick your leaderboard name",sub:"This is what other techs see on the leaderboard. Your Google email stays private.",go:"Save name",pass:null,shop:true},
+  reset:{t:"Reset your password",sub:"Enter your name, the recovery code you saved, and a new password. Every other device gets logged out.",go:"Reset password",pass:"new-password",shop:false,code:true}
 };
 function openAcct(mode,then){
   amMode=mode;if(then!==undefined)amThen=then;const m=AM[mode],pl=lbPlayer();
   $("#nameTitle").textContent=m.t;$("#nameSub").textContent=m.sub;$("#nmGo").textContent=m.go;
   $("#acctTabs").hidden=!(mode==="login"||mode==="create");
+  $("#gBlock").hidden=!((mode==="login"||mode==="create")&&G_ON&&!amThen);
   $$("#acctTabs [data-am]").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.am===mode)));
   const nm=$("#nmName");nm.readOnly=mode==="setpass";nm.value=(mode==="rename"||mode==="setpass")&&pl?pl.name:mode===amMode&&nm.value&&!nm.readOnly?nm.value:"";
   $("#nmPassL").hidden=!m.pass;const pw=$("#nmPass");pw.required=!!m.pass;pw.value="";pw.setAttribute("autocomplete",m.pass||"off");
-  $("#nmShopL").hidden=!m.shop;$("#nmShop").value=mode==="rename"&&pl?pl.shop||"":"";
-  $("#nmHint").textContent=mode==="create"?"Name: 2–24 letters or numbers. Keep it clean; names that aren't get removed. Password: at least 6 characters.":mode==="login"?"Forgot your password? Message the site owner to reset it.":"";
+  $("#nmShopL").hidden=!m.shop;$("#nmCodeL").hidden=!m.code;$("#nmCode").required=!!m.code;$("#nmCode").value="";
+  $("#nmPassT").textContent=m.pass==="new-password"&&mode!=="create"?"New password":"Password";$("#nmShop").value=mode==="rename"&&pl?pl.shop||"":"";
+  $("#nmHint").innerHTML=mode==="create"?"Name: 2–24 letters or numbers. Keep it clean; names that aren't get removed. Password: at least 6 characters.":mode==="login"?'<button type="button" class="nm-forgot" id="nmForgot">Forgot your password?</button>':mode==="reset"?"Lost your recovery code too? If you're still logged in on another device, change your password there. Otherwise, message the site owner.":"";
+  const fg=$("#nmForgot");if(fg)fg.onclick=()=>{const v=$("#nmName").value;openAcct("reset");$("#nmName").value=v;if(v)setTimeout(()=>$("#nmCode").focus(),40);};
   $("#nmErr").hidden=true;$("#nmGo").disabled=false;$("#nameScrim").hidden=false;
   setTimeout(()=>(nm.readOnly?pw:nm).focus(),30);
 }
@@ -4809,15 +4860,19 @@ $("#acctTabs").addEventListener("click",e=>{const b=e.target.closest("[data-am]"
 $("#nameForm").onsubmit=async e=>{e.preventDefault();const b=$("#nmGo");b.disabled=true;$("#nmErr").hidden=true;
   const nm=$("#nmName").value.trim(),pw=$("#nmPass").value,sh=$("#nmShop").value.trim(),pl=lbPlayer();
   try{
-    if((amMode==="login"||amMode==="create"||amMode==="rename")&&!NAME_RE.test(nm))throw new Error("Use 2–24 letters, numbers, spaces, or . _ ' -");
+    var rc=null;
+    if((amMode==="login"||amMode==="create"||amMode==="rename"||amMode==="reset"||amMode==="gname")&&!NAME_RE.test(nm))throw new Error("Use 2–24 letters, numbers, spaces, or . _ ' -");
     if(amMode==="login"){const r=await sbRpc("login",{p_name:nm,p_pass:pw});if(r.error)throw new Error(r.error);setPlayer({id:r.id,name:r.name,shop:r.shop||"",token:r.token});}
-    else if(amMode==="create"){const r=await sbRpc("create_account",{p_name:nm,p_shop:sh||null,p_pass:pw});setPlayer({id:r.id,name:r.name,shop:r.shop||"",token:r.token});acct={name:r.name,shop:r.shop,has_pass:true,career:{},daily:[],started:[]};save("scs-acct",acct);}
+    else if(amMode==="create"){const r=await sbRpc("create_account",{p_name:nm,p_shop:sh||null,p_pass:pw});setPlayer({id:r.id,name:r.name,shop:r.shop||"",token:r.token});acct={name:r.name,shop:r.shop,has_pass:true,has_recovery:true,career:{},daily:[],started:[]};save("scs-acct",acct);rc=r.recovery;}
+    else if(amMode==="gname"){if(!gJwt)throw new Error("Google sign-in expired. Close this and use Continue with Google again.");const r=await sbRpc("google_create",{p_name:nm,p_shop:sh||null},gJwt);setPlayer({id:r.id,name:r.name,shop:r.shop||"",token:r.token});acct={name:r.name,shop:r.shop,has_pass:false,has_google:true,career:{},daily:[],started:[]};save("scs-acct",acct);gJwt=null;}
+    else if(amMode==="reset"){const r=await sbRpc("reset_password",{p_name:nm,p_code:$("#nmCode").value,p_pass:pw});if(r.error)throw new Error(r.error);setPlayer({id:r.id,name:r.name,shop:r.shop||"",token:r.token});rc=r.recovery;}
     else if(amMode==="rename"){const r=await sbRpc("rename_player",{p_token:pl.token,p_name:nm,p_shop:sh||null});save("scs-player",Object.assign(pl,{name:r.name,shop:r.shop||""}));}
-    else if(amMode==="setpass"){await sbRpc("set_password",{p_token:pl.token,p_pass:pw});if(acct){acct.has_pass=true;save("scs-acct",acct);}}
+    else if(amMode==="setpass"){const r=await sbRpc("set_password",{p_token:pl.token,p_pass:pw});rc=r&&r.recovery;if(acct){acct.has_pass=true;if(rc)acct.has_recovery=true;save("scs-acct",acct);}}
   }catch(err){b.disabled=false;$("#nmErr").textContent=/fetch|reachable|network/i.test(err.message)?"Can't reach the server. Check your connection and try again.":err.message;$("#nmErr").hidden=false;return;}
   $("#nameScrim").hidden=true;acctMsg="";
   await syncAcct();renderMenu();
-  const f=amThen;amThen=null;if(f)f();
+  const f=amThen;amThen=null;
+  if(rc)showRecovery(rc,f);else if(f)f();
 };
 $("#nmCancel").onclick=()=>{$("#nameScrim").hidden=true;amThen=null;};
 /* the daily needs an account; the attempt is claimed on the server so it can't be replayed on another device */
@@ -4890,7 +4945,7 @@ function renderDaily(){
   if(r&&r.done&&!r.posted&&lbPlayer())lbSubmit(d.no).catch(()=>{});
 }
 setInterval(()=>{const n=$("#dNext");if(n&&!$("#menu").hidden)n.textContent=untilTomorrow();},30000);
-setTimeout(()=>{if(!/^#claim=/.test(location.hash))syncAcct();claimFromHash();},0);addEventListener("hashchange",claimFromHash);
+setTimeout(async()=>{if(await googleReturn())return;if(!/^#claim=/.test(location.hash))syncAcct();claimFromHash();},0);addEventListener("hashchange",claimFromHash);
 function startCall(sc){
   callNo=career.tutorial.calls+career.easy.calls+career.hard.calls+1;
   woNo++;s=newCall(sc);s.lifted={};s.cut={};s.everLifted=0;s.jumps=[];s.zOff=[false,false];wjFirst=null;play=null;tripping=false;lastMarks="";
