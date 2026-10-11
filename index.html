@@ -416,6 +416,32 @@ html.phm .bar,html.phm .wrap,html.phm .callbar{display:none}
 .ph-menu .linkbtn{display:block;width:100%;text-align:left;border:0;border-radius:6px;padding:9px 10px;font-size:14px}
 .ph-menu .linkbtn:hover{background:var(--panel)}
 .ph-menu .badge{display:block;margin:4px 10px 8px;width:max-content}
+/* short screens (browser bars showing): tighten everything */
+.ph-top{height:38px}
+.ph-drawer{top:38px}
+.ph .coach{padding:3px 8px;font-size:11.5px;line-height:1.3;max-height:3.2em}
+.ph .coach .ck{font-size:10px;letter-spacing:.06em;white-space:nowrap}
+.ph-side{width:178px;gap:5px;padding:5px}
+.ph .lcd{min-height:0;padding:3px 7px}
+.ph .lcd-main b{font-size:21px}
+.ph .acts{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.ph .acts button{padding:6px 4px;font-size:12px;line-height:1.15}
+.ph .acts .big{grid-column:1/-1;font-size:14px;padding:8px 4px}
+.ph-drawbtn{padding:6px 8px;font-size:12.5px}
+.ph .sysstat{font-size:10.5px}
+@media (max-height:360px){
+  .ph-top{height:34px}.ph-drawer{top:34px}
+  .ph .place b{font-size:13px}
+  .ph .tool{min-height:34px;padding:3px 2px}.ph .tool svg{width:26px;height:26px}
+  .ph .dial svg{width:32px;height:32px}
+  .ph .mms button{padding:1px 5px;font-size:10px}
+  .ph .lcd-top{font-size:9px}
+  .ph .lcd-main b{font-size:18px}
+}
+@media (max-height:330px){.ph .tools{gap:2px;padding:3px}.ph .tool{min-height:0;padding:2px}.ph .tool svg{width:24px;height:24px}.ph .coach{max-height:2.7em}}
+.ph-tip{position:absolute;left:8px;bottom:8px;z-index:5;display:flex;align-items:center;gap:8px;max-width:calc(100% - 16px);background:rgba(18,23,29,.94);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:6px 6px 6px 10px;font-size:12px;color:var(--ink)}
+.ph-tip[hidden]{display:none}
+.ph-tip button{flex:none;background:none;border:0;color:var(--muted);font-size:18px;line-height:1;padding:2px 6px}
 html.phm .scrim{padding:8px}
 html.phm .modal{max-height:calc(100dvh - 16px);overflow-y:auto;margin-block:0}
 .rotate{position:fixed;inset:0;z-index:70;display:grid;place-items:center;padding:24px;background:var(--bg);text-align:center}
@@ -716,7 +742,7 @@ html.phm .modal{max-height:calc(100dvh - 16px);overflow-y:auto;margin-block:0}
   </div>
   <div class="ph-body">
     <div class="ph-rail" id="phRail"></div>
-    <div class="ph-stage" id="phStage"></div>
+    <div class="ph-stage" id="phStage"><p class="ph-tip" id="phTip" hidden><span>Hide the browser bars: tap <b>Share</b>, then <b>Add to Home Screen</b>, and play from the new icon.</span><button type="button" id="phTipX" aria-label="Dismiss tip">&times;</button></p></div>
     <div class="ph-side" id="phSide">
       <div id="phMeter"></div>
       <button class="ph-drawbtn" id="phDrawBtn" type="button" aria-expanded="false" aria-controls="phDrawer">Work order &amp; notes<span class="ph-dot" id="phDot" hidden></span></button>
@@ -4705,11 +4731,14 @@ const PH_MOVES=[[".stat.clock","#phClock"],["#places","#phPlaces"],["#coach","#p
   ["#modeBadge","#phMenu"],["#sndBtn","#phMenu"],["#diaBtn","#phMenu"],["#refBtn","#phMenu"],["#menuBtn","#phMenu"],
   ["#foldWo","#phPaneWo"],["#foldPlate","#phPaneWo"],["#panelMan","#phPaneGa"],["#panelSeq","#phPaneSeq"],[".col-right .notes","#phPaneNotes"]];
 var phOn=false,phHome=[];
+const IOS_PHONE=/iPhone|iPod/.test(navigator.userAgent),STANDALONE=navigator.standalone===true||matchMedia("(display-mode: standalone)").matches;
+function phTipSync(){let seen=false;try{seen=localStorage.getItem("scs-hstip")==="1";}catch(e){}$("#phTip").hidden=!(phOn&&IOS_PHONE&&!STANDALONE&&!seen);}
+$("#phTipX").onclick=()=>{try{localStorage.setItem("scs-hstip","1");}catch(e){}phTipSync();};
 function phEnter(){
   if(phOn)return;phOn=true;
   PH_MOVES.forEach(([src,dst])=>{const el=$(src),to=$(dst);if(!el||!to)return;const mark=document.createComment("ph");el.replaceWith(mark);phHome.push([el,mark]);to.appendChild(el);});
   $("#foldWo").open=true;
-  document.documentElement.classList.add("phm");$("#ph").hidden=false;phTabs();
+  document.documentElement.classList.add("phm");$("#ph").hidden=false;phTabs();phTipSync();
 }
 function phLeave(){
   if(!phOn)return;phOn=false;
