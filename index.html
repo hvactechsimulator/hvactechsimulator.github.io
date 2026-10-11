@@ -387,10 +387,24 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
 .ticket .ghost:hover{border-color:var(--pencil)}
 .ticket .linkbtn{color:var(--pencil);border-color:#a8954a}
 .m-van{width:100%;height:auto;display:block}
-.m-acct{font-size:13.5px;color:var(--muted);margin:0 0 10px;display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center}
-.m-acct b{color:var(--ink)}
-.m-acct .linkbtn{font-size:12.5px}
-.m-acct .acct-warn{flex-basis:100%;color:var(--accent)}
+.m-user{margin-left:auto;align-self:flex-start;position:relative;flex:none}
+.u-btn{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:5px 12px 5px 5px;color:var(--ink);font-weight:600;font-size:14px;max-width:220px}
+.u-btn:hover{border-color:var(--muted)}
+.u-av{flex:none;width:28px;height:28px;border-radius:50%;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font:800 15px var(--display);position:relative}
+.u-av.warn::after{content:"";position:absolute;top:-2px;right:-2px;width:9px;height:9px;border-radius:50%;background:#e5484d;border:2px solid var(--panel)}
+.u-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.u-caret{flex:none;width:10px;height:10px;opacity:.7}
+.u-login{background:var(--accent);color:var(--accent-ink);border:0;border-radius:999px;padding:9px 18px;font-weight:700;font-size:14px}
+.u-login:hover{filter:brightness(1.08)}
+.u-menu{position:absolute;right:0;top:calc(100% + 8px);z-index:5;min-width:240px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:6px;box-shadow:0 14px 34px rgba(0,0,0,.45)}
+.u-menu .u-who{padding:8px 10px 10px;border-bottom:1px solid var(--line);margin-bottom:4px;font-size:13px;color:var(--muted)}
+.u-menu .u-who b{display:block;color:var(--ink);font-size:15px}
+.u-menu button{display:block;width:100%;text-align:left;background:none;border:0;border-radius:6px;padding:9px 10px;color:var(--ink);font-size:14px}
+.u-menu button:hover,.u-menu button:focus-visible{background:var(--panel)}
+.u-menu .u-out{color:#ff8a8d}
+.u-menu .u-tip{margin:4px 2px 2px;padding:8px 10px;border-radius:6px;background:color-mix(in srgb,var(--accent) 12%,transparent);color:#e9d9a0;font-size:12.5px;line-height:1.4}
+.u-msg{position:absolute;right:0;top:calc(100% + 8px);width:max-content;max-width:260px;background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--ink);box-shadow:0 10px 24px rgba(0,0,0,.4);z-index:4}
+@media (max-width:560px){.u-btn{padding:4px;gap:0}.u-btn .u-name,.u-btn .u-caret{display:none}.u-av{width:34px;height:34px;font-size:17px}.m-top{align-items:flex-start}}
 .m-record h2{margin:0 0 6px;font-family:var(--display);font-weight:700;font-size:19px;color:var(--ink)}
 .m-record table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
 .m-record th{font-weight:500;color:var(--muted);text-align:right;padding:4px 0;font-size:12.5px}
@@ -722,6 +736,7 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
       <svg class="m-mark" viewBox="0 0 512 512" aria-hidden="true"><circle cx="256" cy="270" r="176" fill="#1a2129" stroke="#e4e9ee" stroke-width="22"/><path d="M165.5 360.5 A128 128 0 0 1 244.8 142.5" stroke="#3d8fe8" stroke-width="40" fill="none"/><path d="M267.2 142.5 A128 128 0 0 1 346.5 360.5" stroke="#e5484d" stroke-width="40" fill="none"/><line x1="198.0" y1="328.0" x2="188.1" y2="337.9" stroke="#8e9aa7" stroke-width="6" stroke-linecap="round"/><line x1="178.0" y1="295.3" x2="164.7" y2="299.7" stroke="#8e9aa7" stroke-width="6" stroke-linecap="round"/><line x1="175.0" y1="257.2" x2="161.2" y2="255.0" stroke="#8e9aa7" stroke-width="6" stroke-linecap="round"/><line x1="189.7" y1="221.8" x2="178.3" y2="213.6" stroke="#8e9aa7" stroke-width="6" stroke-linecap="round"/><line x1="218.8" y1="196.9" x2="212.4" y2="184.5" stroke="#8e9aa7" stroke-width="6" stroke-linecap="round"/><line x1="256.0" y1="188.0" x2="256.0" y2="174.0" stroke="#8e9aa7" stroke-width="6" stroke-linecap="round"/><line x1="293.2" y1="196.9" x2="299.6" y2="184.5" stroke="#8e9aa7" stroke-width="6" stroke-linecap="round"/><line x1="322.3" y1="221.8" x2="333.7" y2="213.6" stroke="#8e9aa7" stroke-width="6" stroke-linecap="round"/><line x1="337.0" y1="257.2" x2="350.8" y2="255.0" stroke="#8e9aa7" stroke-width="6" stroke-linecap="round"/><line x1="334.0" y1="295.3" x2="347.3" y2="299.7" stroke="#8e9aa7" stroke-width="6" stroke-linecap="round"/><line x1="314.0" y1="328.0" x2="323.9" y2="337.9" stroke="#8e9aa7" stroke-width="6" stroke-linecap="round"/><path d="M356.4 158.5 L241.1 256.6 L233.2 295.3 L270.9 283.4Z" fill="#f2b705" stroke="#1b1600" stroke-width="5" stroke-linejoin="round"/><circle cx="256" cy="270" r="30" fill="#f2b705" stroke="#1b1600" stroke-width="5"/><circle cx="256" cy="270" r="10" fill="#1b1600"/><path d="M264 370 L236 410 L254 410 L246 440 L278 398 L259 398Z" fill="#f2b705" stroke="#1b1600" stroke-width="4" stroke-linejoin="round"/></svg>
       <div><h1>HVAC Tech Simulator</h1>
       <p>Residential service calls. Take the call, test the equipment, make the repair, and verify the system before you leave.</p></div>
+      <div class="m-user" id="mUser"></div>
     </header>
     <section class="board" aria-label="New service call">
       <div class="mwo">
@@ -794,7 +809,7 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
           <path d="M5 14 H45 M5 21 H45 M5 28 H45 M5 35 H45 M5 42 H45" stroke="#6d757c" stroke-width="2.5"/>
           <ellipse cx="25" cy="4" rx="20" ry="4" fill="#2a2e33"/></g>
       </svg>
-      <div class="m-record"><h2>Your record</h2><div class="m-acct" id="mAcct"></div><table id="mCareer"></table></div>
+      <div class="m-record"><h2>Your record</h2><table id="mCareer"></table></div>
     </aside>
     <p class="m-legal">© 2026 HVAC to the Future. <a href="https://hvactechsimulator.com">hvactechsimulator.com</a>. All rights reserved. <a href="/privacy.html">Privacy</a></p>
   </div>
@@ -4845,16 +4860,31 @@ $("#recDone").onclick=()=>{$("#recScrim").hidden=true;const f=recThen;recThen=nu
 async function newRecovery(){const pl=lbPlayer();if(!pl)return;
   try{const r=await sbRpc("new_recovery_code",{p_token:pl.token});if(acct){acct.has_recovery=true;save("scs-acct",acct);}showRecovery(r.recovery);}
   catch(e){acctMsg=/logged out/i.test(e.message)?"You were logged out. Log in again.":"Can't reach the server right now. Try again in a minute.";if(/logged out/i.test(e.message))clearPlayer();renderMenu();}}
+let uOpen=false,uMsgT=null;
 function renderAcct(){
-  const el=$("#mAcct");if(!el)return;const pl=lbPlayer();
-  let h;
-  if(pl)h='<span>Logged in as <b>'+esc(pl.name)+'</b>'+(pl.shop?', '+esc(pl.shop):'')+'.</span><button class="linkbtn" type="button" data-acct="rename">Change name</button><button class="linkbtn" type="button" data-acct="setpass">'+(acct&&acct.has_pass===false?(acct.has_google?'Add a password':'Set a password'):'Change password')+'</button><button class="linkbtn" type="button" data-acct="recovery"'+(acct&&acct.has_pass===false?' hidden':'')+'>New recovery code</button>'+(G_ON&&acct&&acct.has_google===false?'<button class="linkbtn" type="button" data-acct="glink">Connect Google</button>':'')+'<button class="linkbtn" type="button" data-acct="logout">Log out</button>'+
-    (acct&&acct.has_pass===false&&!acct.has_google?'<span class="acct-warn">Set a password or connect Google so you can log in on your other devices.</span>':acct&&acct.has_pass&&acct.has_recovery===false?'<span class="acct-warn">Get a recovery code so you can reset your password if you forget it.</span>':'');
-  else h='<span>Playing as a guest. Your record stays on this device.</span><button class="linkbtn" type="button" data-acct="login">Log in</button><button class="linkbtn" type="button" data-acct="create">Create account</button>';
-  if(acctMsg)h+='<span class="acct-warn">'+esc(acctMsg)+'</span>';
+  const el=$("#mUser");if(!el)return;const pl=lbPlayer();let h;
+  if(!pl)h='<button class="u-login" type="button" data-acct="login">Log in</button>';
+  else{
+    const g=!!(acct&&acct.has_google),pw=!(acct&&acct.has_pass===false),
+      tip=!pw&&!g?'Set a password or connect Google so you can log in on your other devices.':pw&&acct&&acct.has_recovery===false?'Get a recovery code so you can reset your password if you forget it.':'';
+    h='<button class="u-btn" type="button" id="uBtn" aria-label="Account: '+esc(pl.name)+'" aria-haspopup="menu" aria-expanded="'+uOpen+'"><span class="u-av'+(tip?' warn':'')+'" aria-hidden="true">'+esc((pl.name[0]||"?").toUpperCase())+'</span><span class="u-name">'+esc(pl.name)+'</span><svg class="u-caret" viewBox="0 0 10 10" aria-hidden="true"><path d="M1 3l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></button>'+
+      '<div class="u-menu" role="menu" id="uMenu"'+(uOpen?'':' hidden')+'>'+
+      '<div class="u-who"><b>'+esc(pl.name)+'</b>'+[pl.shop?esc(pl.shop):'',g?'Signed in with Google':''].filter(Boolean).join(' · ')+'</div>'+
+      (tip?'<p class="u-tip">'+esc(tip)+'</p>':'')+
+      '<button type="button" role="menuitem" data-acct="rename">Change name or shop</button>'+
+      (g&&!pw?'':'<button type="button" role="menuitem" data-acct="setpass">'+(pw?'Change password':'Set a password')+'</button>')+
+      (pw?'<button type="button" role="menuitem" data-acct="recovery">New recovery code</button>':'')+
+      (G_ON&&acct&&!g?'<button type="button" role="menuitem" data-acct="glink">Connect Google</button>':'')+
+      '<button type="button" role="menuitem" class="u-out" data-acct="logout">Log out</button></div>';
+  }
+  if(acctMsg&&!uOpen)h+='<p class="u-msg" role="status">'+esc(acctMsg)+'</p>';
   el.innerHTML=h;
+  const ub=$("#uBtn");if(ub)ub.onclick=e=>{e.stopPropagation();uOpen=!uOpen;acctMsg="";renderAcct();if(uOpen){const f=$("#uMenu button");if(f)f.focus();}};
+  if(acctMsg){clearTimeout(uMsgT);uMsgT=setTimeout(()=>{acctMsg="";renderAcct();},6000);}
 }
-document.addEventListener("click",e=>{const b=e.target.closest("[data-acct]");if(!b)return;const m=b.dataset.acct;acctMsg="";
+document.addEventListener("click",e=>{if(uOpen&&!e.target.closest("#mUser")){uOpen=false;renderAcct();}});
+document.addEventListener("keydown",e=>{if(uOpen&&e.key==="Escape"){uOpen=false;renderAcct();const b=$("#uBtn");if(b)b.focus();}});
+document.addEventListener("click",e=>{const b=e.target.closest("[data-acct]");if(!b)return;const m=b.dataset.acct;acctMsg="";uOpen=false;renderAcct();
   if(m==="recovery"){newRecovery();return;}
   if(m==="glink"){openAcct("glink");return;}
   if(m==="logout"){const pl=lbPlayer();if(pl)sbRpc("logout",{p_token:pl.token}).catch(()=>{});clearPlayer();renderMenu();return;}
