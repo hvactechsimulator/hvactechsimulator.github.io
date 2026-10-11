@@ -12,6 +12,9 @@
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="manifest" href="site.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="HVAC Tech Simulator">
 <meta property="og:title" content="HVAC Tech Simulator">
@@ -340,6 +343,89 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
 .switch::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .15s}
 .switch[aria-pressed="true"]{background:var(--ok)}.switch[aria-pressed="true"]::after{left:23px}
 
+
+/* ---------- phone, sideways ---------- */
+html.phm,html.phm body{height:100%;overflow:hidden;overscroll-behavior:none}
+html.phm .bar,html.phm .wrap,html.phm .callbar{display:none}
+.ph{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;background:var(--bg);
+  padding:0 env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+.ph[hidden]{display:none}
+.ph-top{flex:none;display:flex;align-items:center;gap:6px;height:42px;padding:0 6px;border-bottom:1px solid var(--line);background:var(--panel)}
+.ph-ico{flex:none;width:36px;height:34px;display:grid;place-items:center;background:none;border:1px solid var(--line);border-radius:7px;color:var(--ink)}
+.ph-ico svg{width:18px;height:18px}
+.ph-places{flex:1;min-width:0;height:100%}
+.ph .places{height:100%;border:0;overflow-x:auto;scrollbar-width:none}
+.ph .places::-webkit-scrollbar{display:none}
+.ph .place{min-width:0;flex:0 0 auto;padding:4px 12px 3px;display:flex;align-items:center}
+.ph .place b{font-size:14.5px;letter-spacing:.05em;white-space:nowrap}
+.ph .place span{display:none}
+.ph-clock{flex:none;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted)}
+.ph-clock .stat b{font-size:17px}
+.ph-clock .stat span{display:none}
+.ph-body{flex:1;min-height:0;display:flex}
+.ph-rail{flex:none;width:62px;overflow-y:auto;scrollbar-width:none;border-right:1px solid var(--line);background:repeating-linear-gradient(45deg,#1d252d 0 3px,#1a2129 3px 6px)}
+.ph-rail::-webkit-scrollbar{display:none}
+.ph .tools{display:flex;flex-direction:column;flex-wrap:nowrap;gap:4px;padding:5px}
+.ph-rail{width:56px}
+.ph .tools{gap:3px;padding:4px}
+.ph .tool{width:auto;padding:5px 2px;min-height:40px;justify-content:center}
+.ph .tool svg{width:30px;height:30px}
+.ph .tool span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.ph .tool kbd{display:none}
+.ph .tool[aria-pressed="true"]{transform:translateX(3px)}
+.ph-stage{flex:1;min-width:0;display:flex;flex-direction:column;position:relative;background:#0e1216}
+.ph .coach{flex:none;padding:5px 10px;font-size:12px;line-height:1.35;gap:8px;max-height:5.4em;overflow-y:auto}
+.ph .coach p{margin:0}
+.ph .stage{flex:1;min-height:0;height:100%;width:auto;max-width:100%;max-height:100%;align-self:center;aspect-ratio:800/500}
+.ph .dock{position:absolute;left:8px;right:8px;bottom:8px;z-index:6;max-height:60%;overflow-y:auto;border:1px solid var(--line);border-radius:8px;padding:6px}
+.ph .bubble{font-size:12px;width:min(250px,60%);padding:7px 10px 8px}
+.ph .bubble .fact,.ph .bubble .calc{font-size:11.5px}
+.ph-side{flex:none;width:186px;display:flex;flex-direction:column;gap:6px;padding:6px;overflow-y:auto;border-left:1px solid var(--line);background:var(--panel)}
+.ph .lcdcase{flex-direction:column;min-width:0;padding:5px;gap:5px}
+.ph .lcd{padding:4px 8px;min-height:62px}
+.ph .lcd-top{font-size:10px}
+.ph .lcd-main b{font-size:24px}
+.ph .dial{width:auto;flex-direction:row;justify-content:space-between}
+.ph .dial svg{width:40px;height:40px}
+.ph .mms{display:grid;grid-template-columns:1fr 1fr;gap:2px}
+.ph .mms button{padding:2px 6px}
+.ph-drawbtn{position:relative;background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:8px;color:var(--ink);font-weight:600;font-size:13px;text-align:left}
+.ph-drawbtn[aria-expanded="true"]{border-color:var(--accent)}
+.ph-dot{position:absolute;top:6px;right:7px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.ph .winfo{border:1px solid var(--line);border-radius:7px;padding:6px 8px;font-size:11.5px;min-height:0}
+.ph-call{margin-top:auto;display:flex;flex-direction:column;gap:5px}
+.ph .sysstat{font-size:11px;gap:4px 8px;line-height:1.3}
+.ph .acts{flex-direction:column;gap:5px}
+.ph .acts button{width:100%;padding:7px 8px;font-size:13px}
+.ph .acts .big{font-size:15px;padding:9px 8px}
+.ph-drawer{position:absolute;top:42px;right:0;bottom:0;z-index:8;width:min(400px,62vw);display:flex;flex-direction:column;background:var(--panel);border-left:1px solid var(--line);box-shadow:-14px 0 30px rgba(0,0,0,.45);padding-right:env(safe-area-inset-right,0px)}
+.ph-drawer[hidden]{display:none}
+.ph-dhead{flex:none;display:flex;align-items:center;gap:6px;padding:6px;border-bottom:1px solid var(--line)}
+.ph-tabs{flex:1;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+.ph-tabs button{flex:none;background:none;border:1px solid transparent;border-radius:6px;padding:6px 10px;color:var(--muted);font-weight:600;font-size:13px}
+.ph-tabs button[aria-selected="true"]{color:var(--ink);border-color:var(--line);background:var(--panel2)}
+.ph-pane{flex:1;min-height:0;overflow-y:auto;padding:10px;overscroll-behavior:contain}
+.ph-pane[hidden]{display:none}
+.ph-pane .fold>summary{display:none}
+.ph-pane #foldPlate>summary{display:flex}
+.ph-pane .sec{font-size:13px}
+.ph-pane .entries{max-height:none}
+.ph-pane .gauges{grid-template-columns:1fr 1fr}
+.ph-menu{position:absolute;top:44px;left:6px;z-index:9;min-width:220px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:6px;box-shadow:0 14px 34px rgba(0,0,0,.5)}
+.ph-menu[hidden]{display:none}
+.ph-menu .linkbtn{display:block;width:100%;text-align:left;border:0;border-radius:6px;padding:9px 10px;font-size:14px}
+.ph-menu .linkbtn:hover{background:var(--panel)}
+.ph-menu .badge{display:block;margin:4px 10px 8px;width:max-content}
+html.phm .scrim{padding:8px}
+html.phm .modal{max-height:calc(100dvh - 16px);overflow-y:auto;margin-block:0}
+.rotate{position:fixed;inset:0;z-index:70;display:grid;place-items:center;padding:24px;background:var(--bg);text-align:center}
+.rotate[hidden]{display:none}
+.rotate h2{font-family:var(--display);font-weight:800;font-size:28px;margin:10px 0 6px}
+.rotate p{color:var(--muted);max-width:30ch;margin:0 auto 22px}
+.rot-ph{width:120px;height:120px;animation:rot 2.4s ease-in-out infinite}
+@keyframes rot{0%,25%{transform:rotate(0)}55%,100%{transform:rotate(-90deg)}}
+@media (prefers-reduced-motion:reduce){.rot-ph{animation:none;transform:rotate(-90deg)}}
+
 /* ---------- main menu ---------- */
 .menu{position:fixed;inset:0;z-index:50;overflow:auto;background:#161b20;
   --sheet:#f3f4f0;--form:#21487e;--pencil:#24282d;--canary:#f4e48c;--alu:#a7afb6;
@@ -618,6 +704,41 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
       <button class="ghost" id="repairBtn">Repair…</button>
       <button class="big" id="closeBtn">Close out call</button>
     </div>
+  </div>
+</div>
+
+<!-- phone, sideways: one screen, no scrolling -->
+<div class="ph" id="ph" hidden>
+  <div class="ph-top">
+    <button class="ph-ico" id="phMenuBtn" type="button" aria-label="Call menu" aria-haspopup="menu"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+    <div class="ph-places" id="phPlaces"></div>
+    <div class="ph-clock" id="phClock"></div>
+  </div>
+  <div class="ph-body">
+    <div class="ph-rail" id="phRail"></div>
+    <div class="ph-stage" id="phStage"></div>
+    <div class="ph-side" id="phSide">
+      <div id="phMeter"></div>
+      <button class="ph-drawbtn" id="phDrawBtn" type="button" aria-expanded="false" aria-controls="phDrawer">Work order &amp; notes<span class="ph-dot" id="phDot" hidden></span></button>
+      <div id="phInfo"></div>
+      <div class="ph-call" id="phCall"></div>
+    </div>
+  </div>
+  <div class="ph-drawer" id="phDrawer" hidden>
+    <div class="ph-dhead"><div class="ph-tabs" id="phTabs" role="tablist"></div><button class="ph-ico" id="phDrawClose" type="button" aria-label="Close panel"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 5l10 10M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button></div>
+    <div class="ph-pane" data-pane="wo" id="phPaneWo"></div>
+    <div class="ph-pane" data-pane="gauges" id="phPaneGa" hidden></div>
+    <div class="ph-pane" data-pane="seq" id="phPaneSeq" hidden></div>
+    <div class="ph-pane" data-pane="notes" id="phPaneNotes" hidden></div>
+  </div>
+  <div class="ph-menu" id="phMenu" role="menu" hidden></div>
+</div>
+<div class="rotate" id="rotate" hidden>
+  <div>
+    <svg class="rot-ph" viewBox="0 0 120 120" aria-hidden="true"><rect x="38" y="18" width="44" height="84" rx="8" fill="none" stroke="#e4e9ee" stroke-width="5"/><circle cx="60" cy="92" r="3.5" fill="#e4e9ee"/><path d="M96 34 A40 40 0 0 1 100 70" fill="none" stroke="#f2b705" stroke-width="4" stroke-linecap="round"/><path d="M94 62 L100 72 L107 63" fill="none" stroke="#f2b705" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <h2>Turn your phone sideways</h2>
+    <p>The service call fits your screen in landscape: the whole scene, your tools, and your meter at once.</p>
+    <button class="ghost" id="rotateSkip" type="button">Keep playing upright</button>
   </div>
 </div>
 
@@ -4319,6 +4440,7 @@ function openClose(){
 function endCall(){
   $("#closeScrim").hidden=true;hideBubble();
   s.over=true;
+  if(typeof syncRotate==="function")syncRotate();
   const sc=s.sc,init=s.initFaults,now=activeFaults(),c=closeChecks();
   const induced=now.filter(f=>!init.includes(f));
   const fixedN=init.filter(f=>!now.includes(f)).length;
@@ -4574,8 +4696,67 @@ const STEPS={
 /* desktop: everything fits one screen. Tools and wire info sit in the right column; the manifold shows while the gauge set is in hand. */
 const DESK=matchMedia("(min-width:1241px) and (min-height:600px)");
 const isDesk=()=>DESK.matches;
-function syncMan(){if(!s)return;$("#panelMan").hidden=s.sysId!=="ac"||(isDesk()&&tool!=="gauges");}
+function syncMan(){if(!s)return;$("#panelMan").hidden=s.sysId!=="ac"||(isDesk()&&tool!=="gauges");if(phOn)phTabs();}
+/* ---------- phone held sideways: move the game's parts into a one-screen layout ---------- */
+const PHQ=matchMedia("(pointer:coarse) and (orientation:landscape) and (max-height:540px)");
+const isPh=()=>PHQ.matches;
+const PH_MOVES=[[".stat.clock","#phClock"],["#places","#phPlaces"],["#coach","#phStage"],["#stage","#phStage"],["#dock","#phStage"],["#tools","#phRail"],
+  ["#lcdcase","#phMeter"],["#winfo","#phInfo"],[".callbar .sysstat","#phCall"],[".callbar .acts","#phCall"],
+  ["#modeBadge","#phMenu"],["#sndBtn","#phMenu"],["#diaBtn","#phMenu"],["#refBtn","#phMenu"],["#menuBtn","#phMenu"],
+  ["#foldWo","#phPaneWo"],["#foldPlate","#phPaneWo"],["#panelMan","#phPaneGa"],["#panelSeq","#phPaneSeq"],[".col-right .notes","#phPaneNotes"]];
+var phOn=false,phHome=[];
+function phEnter(){
+  if(phOn)return;phOn=true;
+  PH_MOVES.forEach(([src,dst])=>{const el=$(src),to=$(dst);if(!el||!to)return;const mark=document.createComment("ph");el.replaceWith(mark);phHome.push([el,mark]);to.appendChild(el);});
+  $("#foldWo").open=true;
+  document.documentElement.classList.add("phm");$("#ph").hidden=false;phTabs();
+}
+function phLeave(){
+  if(!phOn)return;phOn=false;
+  while(phHome.length){const [el,mark]=phHome.pop();mark.replaceWith(el);}
+  document.documentElement.classList.remove("phm");$("#ph").hidden=true;phDraw(false);$("#phMenu").hidden=true;
+}
+const PH_TABS=[["wo","Work order","#foldWo"],["gauges","Gauges","#panelMan"],["seq","Sequence","#panelSeq"],["notes","Notes",".notes"]];
+let phTab="wo";
+function phTabs(){
+  const vis=PH_TABS.filter(([k,,sel])=>{const el=$(sel);return el&&!el.hidden;});
+  if(!vis.some(t=>t[0]===phTab))phTab="wo";
+  $("#phTabs").innerHTML=vis.map(([k,l])=>'<button type="button" role="tab" data-pht="'+k+'" aria-selected="'+(k===phTab)+'">'+l+'</button>').join("");
+  $$(".ph-pane").forEach(p=>p.hidden=p.dataset.pane!==phTab);
+  if(phTab==="notes")$("#phDot").hidden=true;
+}
+function phDraw(open,tab){
+  if(tab)phTab=tab;const d=$("#phDrawer");d.hidden=!open;$("#phDrawBtn").setAttribute("aria-expanded",String(open));
+  if(open){phTabs();if(phTab==="notes")$("#phDot").hidden=true;}
+}
+$("#phDrawBtn").onclick=()=>phDraw($("#phDrawer").hidden);
+$("#phDrawClose").onclick=()=>phDraw(false);
+$("#phTabs").addEventListener("click",e=>{const b=e.target.closest("[data-pht]");if(b){phTab=b.dataset.pht;phTabs();}});
+$("#phMenuBtn").onclick=e=>{e.stopPropagation();$("#phMenu").hidden=!$("#phMenu").hidden;};
+document.addEventListener("click",e=>{const m=$("#phMenu");if(m&&!m.hidden&&!e.target.closest("#phMenu")&&!e.target.closest("#phMenuBtn"))m.hidden=true;if(m&&!m.hidden&&e.target.closest("#phMenu .linkbtn"))m.hidden=true;});
+/* new field notes while the drawer is shut: show a dot */
+var phLogBase=0;
+new MutationObserver(()=>{if(phOn&&($("#phDrawer").hidden||phTab!=="notes")&&$("#log").children.length>phLogBase)$("#phDot").hidden=false;}).observe($("#log"),{childList:true});
+/* gauges on the service ports: open the gauge panel so the readings are right there */
+PHQ.addEventListener("change",()=>placeUI());
+/* phone held upright during a call: ask to turn it sideways */
+const PORTQ=matchMedia("(pointer:coarse) and (orientation:portrait) and (max-width:560px)");
+function syncRotate(){let skip=false;try{skip=sessionStorage.getItem("scs-upright")==="1";}catch(e){}
+  $("#rotate").hidden=!(PORTQ.matches&&!skip&&s&&!s.over&&$("#menu").hidden);}
+PORTQ.addEventListener("change",syncRotate);
+new MutationObserver(syncRotate).observe($("#menu"),{attributes:true,attributeFilter:["hidden"]});
+$("#rotateSkip").onclick=()=>{try{sessionStorage.setItem("scs-upright","1");}catch(e){}syncRotate();};
+/* Android and other browsers that allow it: go fullscreen and lock sideways when a call starts; iPhones show the turn prompt instead */
+function phoneFullscreen(){
+  if(!matchMedia("(pointer:coarse)").matches||Math.min(screen.width,screen.height)>560)return;
+  const de=document.documentElement;if(document.fullscreenElement||!de.requestFullscreen)return;
+  de.requestFullscreen({navigationUI:"hide"}).then(()=>{if(screen.orientation&&screen.orientation.lock)return screen.orientation.lock("landscape");}).catch(()=>{});
+}
+document.addEventListener("click",e=>{if(e.target.closest("#startBtn,#dailyBtn,#dailyResume,#resumeBtn"))phoneFullscreen();},true);
+function phoneFullscreenExit(){if(document.fullscreenElement&&document.exitFullscreen){try{screen.orientation&&screen.orientation.unlock&&screen.orientation.unlock();}catch(e){}document.exitFullscreen().catch(()=>{});}}
 function placeUI(){
+  if(isPh()){phEnter();syncMan();return;}
+  phLeave();
   const d=isDesk(),belt=$("#belt"),wi=$("#winfo"),site=$(".site");
   if(d){$("#toolDock").appendChild(belt);$("#infoDock").appendChild(wi);}
   else{site.appendChild(wi);site.appendChild(belt);}
@@ -4585,6 +4766,7 @@ function placeUI(){
 }
 function fitStage(){
   const st=$("#stage");if(!st)return;
+  if(phOn){st.style.width="";return;}
   if(!isDesk()){st.style.width="";return;}
   const site=st.parentElement,top=st.getBoundingClientRect().top,cb=$(".callbar").offsetHeight;
   const avail=Math.max(260,innerHeight-cb-top-14),w=Math.min(site.clientWidth,avail*1.6);
@@ -4689,7 +4871,7 @@ const SEASONS=[
   {id:"winter",n:"Winter",d:"Furnaces and boilers.",long:"Cold-weather calls on condensing gas furnaces and two-zone hydronic boilers: no heat, short cycling, ignition, draft, limits, circulation, zones, and pressure."},
   {id:"all",n:"All seasons",d:"Either, at random.",long:"Calls come from the whole library: central AC, gas furnaces, and gas boilers."}
 ];
-function openMenu(){hideBubble();renderMenu();$("#menu").hidden=false;updateAmbient();window.scrollTo({top:0});}
+function openMenu(){hideBubble();renderMenu();$("#menu").hidden=false;updateAmbient();window.scrollTo({top:0});if(typeof phoneFullscreenExit==="function")phoneFullscreenExit();}
 /* ================= daily challenge =================
    Same call for everyone on a given date: hard pool, often a second hidden fault, Master rules, one attempt, strict scoring. */
 const DAILY0=Date.UTC(2026,9,9);
@@ -5023,6 +5205,7 @@ function startCall(sc){
   buildPlaces();buildTools();buildWiring();
   selectTool("hand");setMeterMode("V");showScene(SYS[s.sysId].scenes[0]);
   $("#menu").hidden=true;renderAll();window.scrollTo({top:0});
+  phLogBase=$("#log").children.length;$("#phDot").hidden=true;phDraw(false);
 }
 
 /* ================= wiring ================= */
