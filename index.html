@@ -448,6 +448,7 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
 .acct-form input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .acct-form input[readonly]{opacity:.7}
 .acct-form label:focus-within{outline:none}
+.g-box{min-height:44px;display:flex;justify-content:center;margin:6px 0 0}
 .g-btn{display:block;width:100%;background:#fff;color:#1f1f1f;border:1px solid #c7c7c7;border-radius:6px;padding:12px;font-weight:600;font-size:15px;margin:6px 0 0}
 .g-btn:hover{background:#f2f2f2}
 .g-or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12.5px;margin:14px 0 4px}
@@ -651,7 +652,7 @@ h2.sec{font-family:var(--display);font-weight:700;font-size:15px;letter-spacing:
   <div class="modal sm" role="dialog" aria-modal="true" aria-labelledby="nameTitle">
     <h2 id="nameTitle">Log in</h2>
     <p class="sub" id="nameSub"></p>
-    <div class="g-block" id="gBlock" hidden><button type="button" class="g-btn" id="gBtn">Continue with Google</button><p class="g-or"><span>or use a name and password</span></p></div>
+    <div class="g-block" id="gBlock" hidden><div class="g-box" id="gBox"></div><button type="button" class="g-btn" id="gBtn" hidden>Continue with Google</button><p class="lb-err" id="gErr" hidden></p><p class="g-or" id="gOr"><span>or use a name and password</span></p></div>
     <div class="acct-tabs" id="acctTabs"><button type="button" data-am="login">Log in</button><button type="button" data-am="create">Create account</button></div>
     <form class="acct-form" id="nameForm" method="post" action="#" autocomplete="on">
       <label id="nmNameL">Name<input id="nmName" name="username" maxlength="24" autocomplete="username" required></label>
@@ -4797,21 +4798,46 @@ function acctRecord(diff,score,fixed,first,diag){
 const G_ON=/(^|\.)hvactechsimulator\.(com|github\.io)$/.test(location.hostname)||!!window.__gtest;let gJwt=null;
 function googleStart(intent){try{sessionStorage.setItem("scs-g-intent",intent);}catch(e){}
   location.href=SB_URL+"/auth/v1/authorize?provider=google&redirect_to="+encodeURIComponent(location.origin+location.pathname);}
+/* Google's own sign-in button runs on hvactechsimulator.com, so players see that address, not the Supabase one */
+const G_CLIENT="975635505024-j4mbm7pmii1aovvdqfd3208e2b771lho.apps.googleusercontent.com";
+let gisLoad=null,gNonce=null,gIntent="login";
+function loadGis(){if(gisLoad)return gisLoad;gisLoad=new Promise((res,rej)=>{const sc=document.createElement("script");sc.src="https://accounts.google.com/gsi/client";sc.async=true;
+  sc.onload=()=>window.google&&google.accounts&&google.accounts.id?res():rej(new Error("gis"));sc.onerror=()=>{gisLoad=null;rej(new Error("gis"));};document.head.appendChild(sc);});return gisLoad;}
+async function sha256hex(t){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t));return Array.from(new Uint8Array(b),x=>x.toString(16).padStart(2,"0")).join("");}
+async function renderGis(intent){
+  gIntent=intent;const box=$("#gBox"),fb=$("#gBtn");box.innerHTML="";fb.hidden=true;
+  try{await loadGis();gNonce=newToken();const hn=await sha256hex(gNonce);
+    google.accounts.id.initialize({client_id:G_CLIENT,callback:onGisCredential,nonce:hn,auto_select:false,cancel_on_tap_outside:true,context:intent==="link"?"use":"signin"});
+    google.accounts.id.renderButton(box,{type:"standard",theme:"outline",size:"large",text:"continue_with",shape:"rectangular",logo_alignment:"center",width:Math.min(400,Math.max(240,box.clientWidth||320))});}
+  catch(e){fb.hidden=false;fb.onclick=()=>googleStart(intent);}  /* button blocked: fall back to the redirect flow */
+}
+async function onGisCredential(resp){
+  const err=$("#gErr");err.hidden=true;
+  try{
+    const r=await fetch(SB_URL+"/auth/v1/token?grant_type=id_token",{method:"POST",headers:{"apikey":SB_KEY,"Content-Type":"application/json"},body:JSON.stringify({provider:"google",id_token:resp.credential,nonce:gNonce})});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok||!j.access_token)throw new Error(j.msg||j.error_description||j.message||"Google sign-in didn't go through. Try again.");
+    $("#nameScrim").hidden=true;
+    await googleWithJwt(j.access_token,gIntent);
+  }catch(e){err.textContent=/fetch|network/i.test(e.message)?"Can't reach the server. Check your connection and try again.":e.message;err.hidden=false;renderGis(gIntent);}
+}
+async function googleWithJwt(jwt,intent){
+  gJwt=jwt;
+  try{
+    if(intent==="link"&&lbPlayer()){await sbRpc("google_link",{p_token:lbPlayer().token},gJwt);gJwt=null;acctMsg="Google connected. Next time, use Continue with Google.";await syncAcct();renderMenu();return;}
+    const r=await sbRpc("google_session",{},gJwt);
+    if(r&&r.needs_name){renderMenu();openAcct("gname");return;}
+    setPlayer({id:r.id,name:r.name,shop:r.shop||"",token:r.token});gJwt=null;acctMsg="";await syncAcct();renderMenu();
+  }catch(e){acctMsg=/fetch|network/i.test(e.message)?"Can't reach the server. Try Continue with Google again.":e.message;renderMenu();}
+}
 async function googleReturn(){
   const h=location.hash;if(!/access_token=|error_description=/.test(h))return false;
   const q=new URLSearchParams(h.slice(1));try{history.replaceState(null,"",location.pathname+location.search);}catch(e){}
   let intent="login";try{intent=sessionStorage.getItem("scs-g-intent")||"login";sessionStorage.removeItem("scs-g-intent");}catch(e){}
   if(q.get("error_description")){acctMsg="Google sign-in didn't finish: "+q.get("error_description");renderMenu();return true;}
-  gJwt=q.get("access_token");
-  try{
-    if(intent==="link"&&lbPlayer()){await sbRpc("google_link",{p_token:lbPlayer().token},gJwt);gJwt=null;acctMsg="Google connected. Next time, use Continue with Google.";await syncAcct();renderMenu();return true;}
-    const r=await sbRpc("google_session",{},gJwt);
-    if(r&&r.needs_name){renderMenu();openAcct("gname");return true;}
-    setPlayer({id:r.id,name:r.name,shop:r.shop||"",token:r.token});gJwt=null;acctMsg="";await syncAcct();renderMenu();
-  }catch(e){acctMsg=/fetch|network/i.test(e.message)?"Can't reach the server. Try Continue with Google again.":e.message;renderMenu();}
+  await googleWithJwt(q.get("access_token"),intent);
   return true;
 }
-$("#gBtn").onclick=()=>googleStart("login");
 let recThen=null;
 function showRecovery(code,then){recThen=then||null;$("#recCode").textContent=code;$("#recCopy").textContent="Copy code";$("#recScrim").hidden=false;setTimeout(()=>$("#recCopy").focus(),30);}
 $("#recCopy").onclick=()=>{const c=$("#recCode").textContent,b=$("#recCopy");(navigator.clipboard?navigator.clipboard.writeText(c):Promise.reject()).then(()=>{b.textContent="Copied";}).catch(()=>{const r=document.createRange();r.selectNodeContents($("#recCode"));const sl=getSelection();sl.removeAllRanges();sl.addRange(r);});};
@@ -4830,7 +4856,7 @@ function renderAcct(){
 }
 document.addEventListener("click",e=>{const b=e.target.closest("[data-acct]");if(!b)return;const m=b.dataset.acct;acctMsg="";
   if(m==="recovery"){newRecovery();return;}
-  if(m==="glink"){googleStart("link");return;}
+  if(m==="glink"){openAcct("glink");return;}
   if(m==="logout"){const pl=lbPlayer();if(pl)sbRpc("logout",{p_token:pl.token}).catch(()=>{});clearPlayer();renderMenu();return;}
   openAcct(m);});
 const AM={
@@ -4838,6 +4864,7 @@ const AM={
   create:{t:"Create account",sub:"Your name is what other techs see on the leaderboard. Your password lets you log in on your phone and computer.",go:"Create account",pass:"new-password",shop:true},
   rename:{t:"Change name",sub:"Your scores move to the new name.",go:"Save",pass:null,shop:true},
   setpass:{t:"Set a password",sub:"Use it to log in on your other devices.",go:"Save password",pass:"new-password",shop:false},
+  glink:{t:"Connect Google",sub:"Pick your Google account. After this you can log in on any device with Continue with Google, and your password keeps working too.",go:null,pass:null,shop:false,noname:true},
   gname:{t:"Pick your leaderboard name",sub:"This is what other techs see on the leaderboard. Your Google email stays private.",go:"Save name",pass:null,shop:true},
   reset:{t:"Reset your password",sub:"Enter your name, the recovery code you saved, and a new password. Every other device gets logged out.",go:"Reset password",pass:"new-password",shop:false,code:true}
 };
@@ -4845,7 +4872,10 @@ function openAcct(mode,then){
   amMode=mode;if(then!==undefined)amThen=then;const m=AM[mode],pl=lbPlayer();
   $("#nameTitle").textContent=m.t;$("#nameSub").textContent=m.sub;$("#nmGo").textContent=m.go;
   $("#acctTabs").hidden=!(mode==="login"||mode==="create");
-  $("#gBlock").hidden=!((mode==="login"||mode==="create")&&G_ON&&!amThen);
+  const gShow=(mode==="login"||mode==="create"||mode==="glink")&&G_ON&&!amThen;
+  $("#gBlock").hidden=!gShow;$("#gOr").hidden=mode==="glink";$("#gErr").hidden=true;
+  if(gShow)renderGis(mode==="glink"?"link":"login");
+  $("#nameForm").hidden=!!m.noname;$("#nmGo").hidden=!m.go;$("#nmHint").hidden=!!m.noname;
   $$("#acctTabs [data-am]").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.am===mode)));
   const nm=$("#nmName");nm.readOnly=mode==="setpass";nm.value=(mode==="rename"||mode==="setpass")&&pl?pl.name:mode===amMode&&nm.value&&!nm.readOnly?nm.value:"";
   $("#nmPassL").hidden=!m.pass;const pw=$("#nmPass");pw.required=!!m.pass;pw.value="";pw.setAttribute("autocomplete",m.pass||"off");
