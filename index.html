@@ -4737,12 +4737,14 @@ function waitRun(){
 }
 const VLABEL={split:"Temperature split re-measured",gauges:"Gauges read",rise:"Temperature rise re-measured",cycle:"Watched a full cycle",loop:"Supply and calling-zone returns re-measured"};
 function closeChecks(){
-  const e=E,items=[];let running;
+  const e=E,items=[],panelsOff=[];let running;
   if(s.sysId==="furnace"){running=(e.phase==="heating"&&e.blower>0)||(e.phase==="trying"&&e.cyc&&e.cyc.result==="running");items.push([running,running?"Burners firing and blower running":"The furnace isn't heating right now"]);
     const doors=s.doorTop&&s.doorBot&&!s.magnet;items.push([doors,doors?"Doors on, door switch magnet removed":"Doors off or magnet still on the door switch"]);running=running&&doors;}
   else if(s.sysId==="boiler"){running=e.running&&(s.bBurn||s.bT>150);items.push([running,running?"Boiler heating and water moving through calling zones":"The boiler isn't delivering heat right now"]);
     items.push([s.bCover,s.bCover?"Boiler cover on":"Boiler cover still off"]);running=running&&s.bCover;}
-  else{running=e.comp==="run"&&e.fan==="run"&&e.blower;items.push([running,running?"Compressor, condenser fan, and blower running":"Not all equipment is running"]);}
+  else{running=e.comp==="run"&&e.fan==="run"&&e.blower;items.push([running,running?"Compressor, condenser fan, and blower running":"Not all equipment is running"]);
+    if(s.panelOpen)panelsOff.push("condenser control panel");if(s.doorOpen)panelsOff.push("furnace blower door");if(s.evapOpen)panelsOff.push("evaporator coil panel");
+    items.push([!panelsOff.length,panelsOff.length?"Panels still off: "+panelsOff.join(", ")+" (−"+5*panelsOff.length+")":"All panels back on"]);}
   if((s.jumps||[]).length){items.push([false,"Jumper still installed: "+s.jumps.map(([a,b])=>pairTitle(a,b)).join(", ")]);running=false;}
   if(s.statOff){items.push([false,"Thermostat still off its wall plate"]);running=false;}
   (s.zOff||[]).forEach((o,i)=>{if(o){items.push([false,"Zone "+(i+1)+" thermostat still off its wall plate"]);running=false;}});
@@ -4752,7 +4754,7 @@ function closeChecks(){
   if(s.lastRepairAt==null)items.push([false,"No repair made on this call"]);
   const need=s.sysId==="furnace"?"5+":"10+";
   (s.sc.verify||[]).forEach(v=>{items.push([!!s.verify[v],VLABEL[v]+" after the last repair"+(v==="cycle"?"":", with "+need+" min of run time")]);});
-  return{running,items};
+  return{running,items,panelsOff};
 }
 function openClose(){
   const c=closeChecks();
@@ -4774,8 +4776,8 @@ function endCall(){
   const timePts=tut?20:Math.max(0,Math.round(20-Math.max(0,diag-sc.par)*.5));
   const safePts=s.safety?0:15;
   const wrong=s.repairs.filter(r=>r.changed===false);
-  const wrongPen=10*wrong.length,inducedPen=10*induced.length;
-  const total=clamp(faultPts+verifyPts+timePts+safePts-wrongPen-inducedPen,0,100);
+  const wrongPen=10*wrong.length,inducedPen=10*induced.length,panelPen=5*c.panelsOff.length;
+  const total=clamp(faultPts+verifyPts+timePts+safePts-wrongPen-inducedPen-panelPen,0,100);
   const allFixed=now.length===0,verified=c.running&&vdone===vreq.length&&s.lastRepairAt!=null;
   const first=allFixed&&!wrong.length&&verified;
   const cr=career[sc.diff];if(cr){cr.calls++;cr.total+=total;if(first)cr.first++;save("scs-career2",career);}
@@ -4795,6 +4797,7 @@ function endCall(){
     '<tr><td>Safety'+(s.safety?": "+(s.safetyWhy||"tested a live capacitor"):"")+'</td><td>+'+safePts+'</td></tr>'+
     (wrong.length?'<tr><td>Repairs that changed nothing: '+wrong.map(r=>esc(REPAIRS[r.id].n)).join(", ")+' ($'+wrong.reduce((t,r)=>t+REPAIRS[r.id].cost,0)+')</td><td>−'+wrongPen+'</td></tr>':'')+
     (induced.length?'<tr><td>Problems created by a repair</td><td>−'+inducedPen+'</td></tr>':'')+
+    (panelPen?'<tr><td>Panels left off: '+esc(c.panelsOff.join(", "))+'</td><td>−'+panelPen+'</td></tr>':'')+
     '</table>';
   h+='<h4>What was wrong</h4>';
   init.concat(induced).forEach(f=>{
@@ -4823,7 +4826,7 @@ function dailyDebrief(o){
   const safeF=(s.safety?0:1)*fixedFrac;
   const cats=[fixedFrac,proof,ver,timeF,safeF],W=[35,15,15,20,15];
   const pts=cats.map((v,i)=>Math.round(v*W[i]));
-  const pen=15*wrong.length+15*induced.length;
+  const pen=15*wrong.length+15*induced.length+5*c.panelsOff.length;
   const score=clamp(pts.reduce((a,b)=>a+b,0)-pen,0,100);
   const st=dailyStore();
   st.res[s.daily.no]={no:s.daily.no,done:true,score,cats,diag,par:sc.par,wrong:wrong.length,sys:s.sysId,fixed:allFixed,verified,
@@ -4836,6 +4839,7 @@ function dailyDebrief(o){
   let h='<span class="verdict '+vcls+'">'+vtxt+'</span><h2 id="debTitle">Daily challenge #'+s.daily.no+' · '+esc(s.cust)+'</h2>'+
     '<div class="score"><b>'+score+'</b><span>/ 100 · '+rating+'</span></div>'+
     '<div class="dcats">'+cats.map((v,i)=>'<div class="'+cl(v)+'"><b>'+pts[i]+'/'+W[i]+'</b><span>'+nm[i]+'</span></div>').join("")+'</div>'+
+    (c.panelsOff.length?'<p class="explain" style="margin:0 0 12px">Panels left off: '+esc(c.panelsOff.join(", "))+' (−'+5*c.panelsOff.length+')</p>':'')+
     '<table class="breakdown">'+
     '<tr><td>Faults corrected: '+init.filter(f=>!now.includes(f)).length+' of '+init.length+'</td><td>+'+pts[0]+'</td></tr>'+
     '<tr><td>Proof: the readings that confirm each fault, taken before its repair</td><td>+'+pts[1]+'</td></tr>'+
@@ -5844,7 +5848,7 @@ requestAnimationFrame(frame);
     cyl(.28,.1,M(0x3a4046,.6,.4),0,0,0,wheel,20).rotation.x=Math.PI/2;cyl(.08,.14,M(0x9aa1a8,.4,.7),0,0,0,wheel,12).rotation.x=Math.PI/2;
     const B=grp(-.6,1.95,.2);box(1.9,1.6,.06,M(0x1d5436,.7),0,0,0,B);
     plate(1.9,1.6,tex(380,320,(c,w,h)=>{c.fillStyle="#1d5436";c.fillRect(0,0,w,h);c.fillStyle="#141414";for(let i=0;i<5;i++)c.fillRect(34+i*62,130,36,54);
-      c.fillStyle="#bfe8cf";c.font="600 20px "+MONO3;c.fillText("STATUS",70,66);c.fillText("3A",232,106);
+      c.fillStyle="#bfe8cf";c.font="600 20px "+MONO3;c.textAlign="left";c.fillText("STATUS",86,66);c.fillText("3A",232,106);
       c.fillStyle="#e8e3d0";c.fillRect(40,232,300,60);c.fillStyle="#23262b";c.font="700 26px "+MONO3;c.textAlign="center";["R","C","W","Y","G"].forEach((l,i)=>{c.fillText(l,74+i*58,284);c.beginPath();c.arc(74+i*58,250,9,0,6.3);c.fillStyle="#9aa0a6";c.fill();c.fillStyle="#23262b";});
       c.strokeStyle="#2f7a52";c.lineWidth=3;for(let i=0;i<6;i++){c.beginPath();c.moveTo(20+i*60,200);c.lineTo(50+i*60,220);c.stroke();}}),0,0,.032,B);
     const ledM=M(0x39e07a,.4,0,{emissive:lin(0x39e07a),emissiveIntensity:1.2});ledM.userData.glow=1;ball(.055,ledM,-.72,.5,.06,B);
