@@ -49,6 +49,16 @@ tr:last-child td{border-bottom:0}
 .pill{display:inline-block;font-size:11px;padding:1px 7px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
 .foot{margin-top:18px;color:var(--muted);font-size:12.5px}
 .foot a{color:inherit}
+.online{margin-bottom:16px}
+.on-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.on-head h2{margin:0}
+.on-head .muted{margin-left:auto;font-size:12px}
+.live{width:10px;height:10px;border-radius:50%;background:var(--muted);flex:none}
+.live.on{background:var(--ok);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(63,182,122,.6)}70%{box-shadow:0 0 0 8px rgba(63,182,122,0)}100%{box-shadow:0 0 0 0 rgba(63,182,122,0)}}
+@media (prefers-reduced-motion:reduce){.live.on{animation:none}}
+.on-sum{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.on-sum b{font:600 34px/1 var(--mono);font-variant-numeric:tabular-nums}
 @media (max-width:820px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.grid2{grid-template-columns:minmax(0,1fr)}}
 </style>
 </head>
@@ -72,6 +82,12 @@ tr:last-child td{border-bottom:0}
       <button class="btn" id="logout" type="button">Lock</button>
     </header>
 
+    <div class="card online" aria-live="polite">
+      <div class="on-head"><span class="live" id="onDot"></span><h2>Online now</h2><span class="muted" id="onUpd"></span></div>
+      <div class="on-sum"><b id="onN">–</b><span class="muted" id="onSub">Checking…</span></div>
+      <div id="onList"></div>
+    </div>
+
     <div class="tiles">
       <div class="card tile"><span>Visitors today</span><b id="tToday">–</b><small id="tToday2"></small></div>
       <div class="card tile"><span>Visitors, last 7 days</span><b id="t7">–</b><small id="t7b"></small></div>
@@ -94,7 +110,7 @@ tr:last-child td{border-bottom:0}
       <div class="card"><h2>Devices</h2><div id="devices"></div></div>
     </div>
 
-    <p class="foot">Counts only visits to hvactechsimulator.com: no names, no personal info. Times are Eastern. A "visitor" is one browser, so the same person on a phone and a computer counts twice.</p>
+    <p class="foot">Counts only visits to hvactechsimulator.com: no names, no personal info. Times are Eastern. "Online now" counts browsers that checked in during the last 3 minutes; it refreshes every 30 seconds. A "visitor" is one browser, so the same person on a phone and a computer counts twice.</p>
   </div>
 </div>
 
@@ -160,10 +176,31 @@ function render(d){lastDays=d.daily;
 async function load(){
   const pw=getPw();if(!pw){showGate();return;}
   $("#refresh").disabled=true;
-  try{const d=await rpc("admin_stats",{p_key:pw});$("#gate").hidden=true;$("#dash").hidden=false;render(d);}
+  try{const d=await rpc("admin_stats",{p_key:pw});$("#gate").hidden=true;$("#dash").hidden=false;render(d);loadOnline();}
   catch(e){if(/password/i.test(e.message)){setPw("");showGate("That password didn't work.");}else{showGate(e.message);}}
   finally{$("#refresh").disabled=false;}
 }
+/* who's playing right now: heartbeats from the game in the last 3 minutes */
+const DOING=Object.assign({menu:"In the menu"},MODE),DEV={computer:"Computer",phone:"Phone",tablet:"Tablet"};
+async function loadOnline(){
+  const pw=getPw();if(!pw||$("#dash").hidden)return;
+  try{
+    const d=await rpc("admin_online",{p_key:pw}),k=d.online||0;
+    $("#onN").textContent=num(k);$("#onDot").classList.toggle("on",k>0);
+    $("#onSub").textContent=k?(num(d.in_call||0)+" on a call · "+num(d.in_menu||0)+" in the menu"):"Nobody is playing right now.";
+    $("#onList").innerHTML=k?table([
+      {h:"Player",f:r=>'<span class="muted">Visitor …'+esc(r.who)+'</span>'},
+      {h:"Doing",f:r=>esc(DOING[r.mode]||r.mode||"")+(r.scen?' <span class="pill">'+esc(r.scen)+'</span>':'')},
+      {h:"Type",f:r=>esc(SYS[r.sys]||"")},
+      {h:"Device",f:r=>esc(DEV[r.device]||r.device||"")},
+      {h:"Last seen",n:1,f:r=>r.secs<60?"just now":Math.round(r.secs/60)+" min ago"}],d.rows):"";
+    $("#onUpd").textContent="Checked "+new Date(d.generated).toLocaleTimeString([],{hour:"numeric",minute:"2-digit",second:"2-digit"});
+  }catch(e){
+    $("#onN").textContent="–";$("#onDot").classList.remove("on");$("#onList").innerHTML="";
+    $("#onSub").textContent=/admin_online|could not find|schema cache/i.test(e.message)?"Not set up yet: run online-setup.sql in Supabase first.":e.message;
+  }
+}
+setInterval(loadOnline,30000);
 function showGate(msg){$("#dash").hidden=true;$("#gate").hidden=false;$("#gateErr").textContent=msg||"";setTimeout(()=>$("#pw").focus(),30);}
 $("#gateForm").onsubmit=e=>{e.preventDefault();setPw($("#pw").value.trim());load();};
 $("#refresh").onclick=load;
